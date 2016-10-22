@@ -8,7 +8,7 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "content_security_policy": "policyString",
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "devtools_page": "devtools.html",
   "homepage_url": "http://path/to/homepage",
   "offline_enabled": true,
