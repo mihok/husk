@@ -2,7 +2,7 @@
 
 ## Background
 
-Husk is a chrome extension inspired by [Papier]((https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia).
+Husk is a chrome extension inspired by [Papier](https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia).
 
 Please refer to `/documentation` for more information.
 
