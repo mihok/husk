@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Husk",
+  "version": "0.01",
+  "description": "Write it all.",
+
+  "author": "teesloane",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "content_security_policy": "policyString",
+  "devtools_page": "devtools.html",
+  "homepage_url": "http://path/to/homepage",
+  "offline_enabled": true,
+  "optional_permissions": ["tabs"],
+  "permissions": ["tabs"]
+}
