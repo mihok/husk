@@ -12,6 +12,6 @@
 var App = new Vue ({
   el: '#App',
   data: {
-    'Wakeboards' : 'Apple Cider is tasty.',
+
   }
 })
