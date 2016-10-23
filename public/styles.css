@@ -1,2 +1,56 @@
+/** Husk's CSS Slag.
+* Contents
+  * General Setup / Layout
+  * Editor
+  * Utils / Misc / Unsorted
+  */
+
+/* ========================================
+General Setup / Layout
+===========================================*/
+
+html { 
+  font-size: 62.5%;
+}
+
 body {
+  display: flex;
+  height: 95vh;
+}
+
+#App {
+  display: flex;
+  flex-direction: column;
+  font-family: courier; /* Just for now, I swear.*/
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+
+/* ========================================
+editor
+===========================================*/
+
+#Editor {
+  /* TODO: Media query for < 700px - bigger width */
+  /* NOTE: Padding and Width are linked for good looking sidebars */
+  flex-grow: 4;
+  display: flex;
+  outline: none;
+  resize: none;
+  width: 60%;
+  border: 0;
+  font-size: 1.4rem;
+  padding: 5% 20% 10%;
+  line-height: 1.4;
+}
+
+
+/* ========================================
+Utils / Misc / Unsorted
+===========================================*/
+
+#dummySpace {
+  flex-grow: 1
 }
