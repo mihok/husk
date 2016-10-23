@@ -37,6 +37,7 @@ editor
   /* NOTE: Padding and Width are linked for good looking sidebars */
   flex-grow: 4;
   display: flex;
+  flex-direction: column;
   outline: none;
   resize: none;
   width: 60%;

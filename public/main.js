@@ -79,3 +79,20 @@ var App = new Vue ({
   }
 })
 
+
+/***********************************
+- contentEditable Experimentation -
+***********************************/
+
+var editor = document.getElementById('Editor')
+editor.addEventListener('input', function() {
+  var children = editor.childNodes
+  children.forEach(function(child) {
+    testBold(child.textContent)
+  })
+})
+
+function testBold(text) {
+  var isBold = /(\*\*[\w]+)\*\*$/ // check for **words**
+  if (isBold.test(text)) console.log('something is bold!')
+}
