@@ -9,7 +9,7 @@
   </head>
   <body>
     <main id="App">
-      <textarea id="Editor"></textarea>
+      <textarea v-model="db.editorContents" id="Editor"></textarea>
       <section id="dummySpace"></section>
       <button @click="save(db)">Save</button>
     </main>

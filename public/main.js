@@ -1,30 +1,50 @@
 /** Husk's Javascript Goop.
 * Contents
   * Globals
+  * Vue Data Object 
   * Vue Objects
+
+* TODO: Focus text area on page load.
+* TODO: Autosave
 */
 
 /*************************
 - - - Globals - - -
  **************************/
 
-// vars
-var g = {
-  storageKey: 'husk_user_storage',
+// Constant strings for avoiding syntax / spelling errors.
+var c = {
+  db: 'db',
+  editorContents: 'editorContents',
+  userSettings: 'userSettings',
+  storageKey: 'husk_user_storage'
 }
 
-// LocalStorage
+
 var db = {
-  fetch: function() {
-    return JSON.parse(localStorage.getItem(g.storageKey || ''))
+  fetch: function(item) {
+    if (!item) return
+    return JSON.parse(localStorage.getItem(c.storageKey))[item]
   },
 
   save: function(payload) {
-    console.log(payload)
-    localStorage.setItem(g.storageKey, JSON.stringify(payload))
+    localStorage.setItem(c.storageKey, JSON.stringify(payload))
   },
-
 }
+
+
+/*************************
+- -  Vue Data Object - -
+ **************************/
+/* Define here rather than the vue instance data object. */
+/* Setting object keys based on constants ("c") to avoid errors. */
+
+var data = {};
+
+data[c.db] = {};
+data[c.db][c.userSettings] = null,
+data[c.db][c.editorContents] = db.fetch(c.editorContents)
+
 
 /*************************
 - -  Vue Instance - -
@@ -33,22 +53,14 @@ var db = {
 // Vue Objects
 var App = new Vue ({
   el: '#App',
-
-  data: {
-    db: {
-      userSettings: null,
-      editorContents: '',
-    },
-  },
+  data: data,
 
   methods: {
     save: db.save
   },
 
   created: function() {
-    console.log('vue instance created')
     // TODO: create setInterval to autosave content. 
   }
-
 })
 
