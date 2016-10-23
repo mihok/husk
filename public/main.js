@@ -6,13 +6,16 @@
 
 * TODO: Focus text area on page load.
 * TODO: Autosave
+
+* NOTE: Lots of obj's defined with bracket notation in order to set
+   keys with CONST's instead of strings, avoiding possible mistakes.
 */
 
 /*************************
 - - - Globals - - -
  **************************/
 
-// Constant strings for avoiding syntax / spelling errors.
+// Constants 
 var c = {
   db: 'db',
   editorContents: 'editorContents',
@@ -20,10 +23,10 @@ var c = {
   storageKey: 'husk_user_storage'
 }
 
-
+// Local storage "Database"
 var db = {
   fetch: function(item) {
-    if (!item) return
+    if (!item) return JSON.parse(localStorage.getItem(c.storageKey))
     return JSON.parse(localStorage.getItem(c.storageKey))[item]
   },
 
@@ -34,10 +37,22 @@ var db = {
 
 
 /*************************
+- -  Setup / Init - -
+ **************************/
+
+// local storage default schema:
+var lsD = {}
+lsD[c.db] = {}
+lsD[c.db][c.editorContents] = ""
+lsD[c.db][c.userSettings] = null // null for now, will be an object eventually.
+
+if(db.fetch() === null) db.save(lsD)
+
+
+/*************************
 - -  Vue Data Object - -
  **************************/
-/* Define here rather than the vue instance data object. */
-/* Setting object keys based on constants ("c") to avoid errors. */
+/* Must be define outside vue instance to leverage obj keys-from-constants. */
 
 var data = {};
 
