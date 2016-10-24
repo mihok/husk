@@ -59,9 +59,21 @@ var App = new Vue ({
 
   created: function() {
     if (!localStorage[c.LS_KEY]) this.save()
-    editor.innerHTML = db.fetch().editor // must be out
+    editor.innerHTML = db.fetch().editor
 
-    // TODO: create setInterval to autosave content. 
+    // Save functionality //
+
+    // auto save
+    setInterval(this.save, 30000)
+
+    // Save on tab close 
+    window.onbeforeunload = function(e) {
+      console.log(e)
+      App.save(); // `this` points to window.
+
+      return null
+    }
+
   }
 })
 
@@ -86,3 +98,4 @@ function testBold(text) {
   if (isBold.test(text)) console.log('something is bold!')
 }
 */
+
