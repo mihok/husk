@@ -14,9 +14,9 @@
 
 /* Regarding the "editor":
  * "editor" must be global: contentEditable elements can't be bound to vue data.
- * must be connected to DOM manually with getElementById, possibly twice...:
+ * must be connected to DOM manually with getElementById, TWICE. 
  * Once before new Vue -> to fetch LS and shove into the editor.
- * Once AFTER the Vue instantiation, if wanting to do any Regex tests.
+ * Once AFTER the Vue instantiation, to "refresh" the var. 
 */
 var editor = document.getElementById('Editor'); 
 
@@ -70,8 +70,9 @@ var App = new Vue ({
 - contentEditable Experimentation -
 ***********************************/
 
+
+var editor = document.getElementById('Editor')
 /*
-var editor = document.getElementById('Editor') 
 editor.addEventListener('input', function() {
   var children = editor.childNodes
   children.forEach(function(child) {
