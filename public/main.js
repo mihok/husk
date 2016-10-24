@@ -6,59 +6,34 @@
 
 * TODO: Focus text area on page load.
 * TODO: Autosave
-
-* NOTE: Lots of obj's defined with bracket notation in order to set
-   keys with CONST's instead of strings, avoiding possible mistakes.
 */
 
 /*************************
 - - - Globals - - -
- **************************/
+**************************/
 
-// Constants 
+/* Regarding the "editor":
+ * "editor" must be global: contentEditable elements can't be bound to vue data.
+ * must be connected to DOM manually with getElementById, possibly twice...:
+ * Once before new Vue -> to fetch LS and shove into the editor.
+ * Once AFTER the Vue instantiation, if wanting to do any Regex tests.
+*/
+var editor = document.getElementById('Editor'); 
+
+// Constants
 var c = {
   db: 'db',
-  editorContents: 'editorContents',
-  userSettings: 'userSettings',
-  storageKey: 'husk_user_storage'
+  LS_KEY: 'husk_user_storage'
 }
 
-// Local storage "Database"
+// Methods to access Local storage "Database"
 var db = {
-  fetch: function(item) {
-    if (!item) return JSON.parse(localStorage.getItem(c.storageKey))
-    return JSON.parse(localStorage.getItem(c.storageKey))[item]
-  },
-
-  save: function(payload) {
-    localStorage.setItem(c.storageKey, JSON.stringify(payload))
+  fetch() { return JSON.parse(localStorage.getItem(c.LS_KEY))},
+  save(payload){
+    console.log(payload)
+    localStorage.setItem(c.LS_KEY, JSON.stringify(payload))
   },
 }
-
-
-/*************************
-- -  Setup / Init - -
- **************************/
-
-// local storage default schema:
-var lsD = {}
-lsD[c.db] = {}
-lsD[c.db][c.editorContents] = ""
-lsD[c.db][c.userSettings] = null // null for now, will be an object eventually.
-
-if(db.fetch() === null) db.save(lsD)
-
-
-/*************************
-- -  Vue Data Object - -
- **************************/
-/* Must be define outside vue instance to leverage obj keys-from-constants. */
-
-var data = {};
-
-data[c.db] = {};
-data[c.db][c.userSettings] = null,
-data[c.db][c.editorContents] = db.fetch(c.editorContents)
 
 
 /*************************
@@ -68,13 +43,24 @@ data[c.db][c.editorContents] = db.fetch(c.editorContents)
 // Vue Objects
 var App = new Vue ({
   el: '#App',
-  data: data,
+  data: {
+    editor: '',
+    settings: {},
+  },
 
   methods: {
-    save: db.save
+    save: function() {
+      db.save({
+        editor: editor.innerHTML,
+        settings: this.settings
+      })
+    },
   },
 
   created: function() {
+    if (!localStorage[c.LS_KEY]) this.save()
+    editor.innerHTML = db.fetch().editor // must be out
+
     // TODO: create setInterval to autosave content. 
   }
 })
@@ -84,7 +70,8 @@ var App = new Vue ({
 - contentEditable Experimentation -
 ***********************************/
 
-var editor = document.getElementById('Editor')
+/*
+var editor = document.getElementById('Editor') 
 editor.addEventListener('input', function() {
   var children = editor.childNodes
   children.forEach(function(child) {
@@ -92,7 +79,9 @@ editor.addEventListener('input', function() {
   })
 })
 
+
 function testBold(text) {
   var isBold = /(\*\*[\w]+)\*\*$/ // check for **words**
   if (isBold.test(text)) console.log('something is bold!')
 }
+*/
