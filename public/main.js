@@ -28,7 +28,8 @@ var c = {
 
 // Methods to access Local storage "Database"
 var db = {
-  fetch() { return JSON.parse(localStorage.getItem(c.LS_KEY))},
+  fetch() { console.log('fetching from ls')
+            return JSON.parse(localStorage.getItem(c.LS_KEY))},
   save(payload){
     console.log(payload)
     localStorage.setItem(c.LS_KEY, JSON.stringify(payload))
@@ -44,33 +45,31 @@ var db = {
 var App = new Vue ({
   el: '#App',
   data: {
-    editor: '',
-    settings: {},
+    ls_schema: { editor: '', settings: {}, }
   },
 
   methods: {
     save: function() {
       db.save({
         editor: editor.innerHTML,
-        settings: this.settings
+        settings: this.ls_schema.settings
       })
     },
+
   },
 
   created: function() {
+
+    // set up local storage / shove it into editor
     if (!localStorage[c.LS_KEY]) this.save()
     editor.innerHTML = db.fetch().editor
 
-    // Save functionality //
-
-    // auto save
-    setInterval(this.save, 30000)
+    // Save on every key press 
+    window.addEventListener('keyup', e => this.save())
 
     // Save on tab close 
-    window.onbeforeunload = function(e) {
-      console.log(e)
-      App.save(); // `this` points to window.
-
+    window.onbeforeunload = (e) => {
+      App.save(); // `this` points to window obj.
       return null
     }
 
@@ -98,4 +97,3 @@ function testBold(text) {
   if (isBold.test(text)) console.log('something is bold!')
 }
 */
-
