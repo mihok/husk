@@ -29,7 +29,7 @@ var c = {
 // Methods to access Local storage "Database"
 var db = {
   fetch() { console.log('fetching from ls')
-            return JSON.parse(localStorage.getItem(c.LS_KEY))},
+    return JSON.parse(localStorage.getItem(c.LS_KEY))},
   save(payload){
     console.log(payload)
     localStorage.setItem(c.LS_KEY, JSON.stringify(payload))
@@ -45,7 +45,10 @@ var db = {
 var App = new Vue ({
   el: '#App',
   data: {
-    ls_schema: { editor: '', settings: {}, }
+    ls_schema: { editor: '', settings: {}, },
+    acceptableTimeout: 3000,
+    typingTimer: null,
+    lastKeyPressTime: null,
   },
 
   methods: {
@@ -64,10 +67,17 @@ var App = new Vue ({
     if (!localStorage[c.LS_KEY]) this.save()
     editor.innerHTML = db.fetch().editor
 
-    // Save on every key press 
-    window.addEventListener('keyup', e => this.save())
+    // Save on every key press
+    window.addEventListener('keyup', e => {
+      clearTimeout(this.typingTimer);
+      this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
+    })
 
-    // Save on tab close 
+    window.addEventListener('keydown', e => {
+      clearTimeout(this.typingTimer)
+    })
+
+    // Save on tab close
     window.onbeforeunload = (e) => {
       App.save(); // `this` points to window obj.
       return null
