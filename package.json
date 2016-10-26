@@ -1,0 +1,14 @@
+{
+  "name": "husk",
+  "version": "0.01",
+  "main": "main.js",
+  "repository": {
+    "url": "git@github.com:teesloane/husk.git",
+    "type": "git"
+  },
+  "author": "teesloane <tylersloane@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^2.0.3"
+  }
+}
