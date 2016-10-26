@@ -5,7 +5,6 @@
   * Vue Objects
 
 * TODO: Focus text area on page load.
-* TODO: Autosave
 */
 
 /*************************
@@ -23,16 +22,14 @@ var editor = document.getElementById('Editor');
 // Constants
 var c = {
   db: 'db',
+  LS: localStorage,
   LS_KEY: 'husk_user_storage'
 }
 
 // Methods to access Local storage "Database"
 var db = {
-  fetch() { return JSON.parse(localStorage.getItem(c.LS_KEY))},
-  save(payload){
-    console.log(payload)
-    localStorage.setItem(c.LS_KEY, JSON.stringify(payload))
-  },
+  fetch: () => JSON.parse(c.LS.getItem(c.LS_KEY)),
+  save: o => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
 }
 
 
@@ -44,45 +41,48 @@ var db = {
 var App = new Vue ({
   el: '#App',
   data: {
-    editor: '',
-    settings: {},
+    ls_schema: { editor: '', settings: {}, },
+    acceptableTimeout: 750,
+    typingTimer: null,
+    lastKeyPressTime: null,
   },
 
   methods: {
     save: function() {
       db.save({
         editor: editor.innerHTML,
-        settings: this.settings
+        settings: this.ls_schema.settings
       })
     },
+
   },
 
   created: function() {
-    if (!localStorage[c.LS_KEY]) this.save()
-    editor.innerHTML = db.fetch().editor // must be out
 
-    // TODO: create setInterval to autosave content. 
+    // set up local storage / shove it into editor
+    if (!c.LS[c.LS_KEY]) this.save()
+    editor.innerHTML = db.fetch().editor
+
+    // Save on key press when time timer runs out. 
+    window.addEventListener('keyup', e => {
+      clearTimeout(this.typingTimer);
+      this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
+    })
+
+    window.addEventListener('keydown', e => {
+      clearTimeout(this.typingTimer)
+    })
+
+    // Save on tab close
+    window.onbeforeunload = (e) => {
+      App.save(); // `this` points to window obj.
+      return null
+    }
+
   }
 })
 
 
-/***********************************
-- contentEditable Experimentation -
-***********************************/
-
-
+// MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
+// Not ideal, but necessary because v-model does not work with contentEditable html.
 var editor = document.getElementById('Editor')
-/*
-editor.addEventListener('input', function() {
-  var children = editor.childNodes
-  children.forEach(function(child) {
-    testBold(child.textContent)
-  })
-})
-
-
-function testBold(text) {
-  var isBold = /(\*\*[\w]+)\*\*$/ // check for **words**
-  if (isBold.test(text)) console.log('something is bold!')
-}
-*/
