@@ -5,7 +5,6 @@
   * Vue Objects
 
 * TODO: Focus text area on page load.
-* TODO: Autosave
 */
 
 /*************************
@@ -23,17 +22,14 @@ var editor = document.getElementById('Editor');
 // Constants
 var c = {
   db: 'db',
+  LS: localStorage,
   LS_KEY: 'husk_user_storage'
 }
 
 // Methods to access Local storage "Database"
 var db = {
-  fetch() { console.log('fetching from ls')
-    return JSON.parse(localStorage.getItem(c.LS_KEY))},
-  save(payload){
-    console.log(payload)
-    localStorage.setItem(c.LS_KEY, JSON.stringify(payload))
-  },
+  fetch: () => JSON.parse(c.LS.getItem(c.LS_KEY)),
+  save: o => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
 }
 
 
@@ -46,7 +42,7 @@ var App = new Vue ({
   el: '#App',
   data: {
     ls_schema: { editor: '', settings: {}, },
-    acceptableTimeout: 3000,
+    acceptableTimeout: 750,
     typingTimer: null,
     lastKeyPressTime: null,
   },
@@ -64,10 +60,10 @@ var App = new Vue ({
   created: function() {
 
     // set up local storage / shove it into editor
-    if (!localStorage[c.LS_KEY]) this.save()
+    if (!c.LS[c.LS_KEY]) this.save()
     editor.innerHTML = db.fetch().editor
 
-    // Save on every key press
+    // Save on key press when time timer runs out. 
     window.addEventListener('keyup', e => {
       clearTimeout(this.typingTimer);
       this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
@@ -87,23 +83,6 @@ var App = new Vue ({
 })
 
 
-/***********************************
-- contentEditable Experimentation -
-***********************************/
-
-
+// MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
+// Not ideal, but necessary because v-model does not work with contentEditable html.
 var editor = document.getElementById('Editor')
-/*
-editor.addEventListener('input', function() {
-  var children = editor.childNodes
-  children.forEach(function(child) {
-    testBold(child.textContent)
-  })
-})
-
-
-function testBold(text) {
-  var isBold = /(\*\*[\w]+)\*\*$/ // check for **words**
-  if (isBold.test(text)) console.log('something is bold!')
-}
-*/
