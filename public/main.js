@@ -1,7 +1,7 @@
 /** Husk's Javascript Goop.
 * Contents
   * Globals
-  * Vue Data Object
+  * Vue Instance 
   * Vue Objects
 
 * TODO: Figure a way around data caps.
@@ -9,7 +9,7 @@
 */
 
 /*************************
-- - - Globals - - -
+Globals 
 **************************/
 
 /* Regarding the "editor":
@@ -29,7 +29,7 @@ var c = {
 
 
 /*************************
-- -  Vue Instance - -
+Vue Instance
 **************************/
 
 // Vue Objects
@@ -44,26 +44,19 @@ var App = new Vue ({
 
   methods: {
 
-    save(payload) {
-      chrome.storage.sync.set(payload)
-    },
+    save(payload) { chrome.storage.sync.set(payload)},
 
-    saveEditor() {
-      chrome.storage.sync.set({editor: editor.innerHTML})
-    },
+    saveEditor() { chrome.storage.sync.set({editor: editor.innerHTML}) },
 
     loadEditor() {
       chrome.storage.sync.get('editor', function(res) {
-        editor.innerHTML = res.editor // async, must happen here.
+        editor.innerHTML = res.editor // async, setting HTML must happen here.
       })
     }
   },
 
   created: function() {
-
-    // set up  storage if necessary / shove it into editor
-    // if () this.save({editor: ''}) // figure out ERR handling if storage doesn't exist.
-    editor.innerHTML = this.loadEditor()
+    this.loadEditor()
 
     // Save on key press when time timer runs out.
     window.addEventListener('keyup', e => {
@@ -82,7 +75,10 @@ var App = new Vue ({
     }
 
     /* Prevent overwrites when user has > 1 Husk tab open.
-     * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls. */
+     * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls.
+     * TODO: mass opening multiple new tabs (overloads the api sync request rate?) -- starts
+     * to load an empty editor, which then, on switching tabs, would overwrite things.
+     */
     document.addEventListener('visibilitychange', () => {
       document.hidden ? this.saveEditor() : this.loadEditor();
     })
@@ -90,7 +86,9 @@ var App = new Vue ({
   }
 })
 
-
+/*************************
+Outro Jams
+**************************/
 // MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
 var editor = document.getElementById('Editor')
