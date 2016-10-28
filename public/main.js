@@ -1,10 +1,11 @@
 /** Husk's Javascript Goop.
 * Contents
   * Globals
-  * Vue Data Object 
+  * Vue Data Object
   * Vue Objects
 
-* TODO: Focus text area on page load.
+* TODO: Figure a way around data caps.
+- chunking the editor data?
 */
 
 /*************************
@@ -17,19 +18,13 @@
  * Once before new Vue -> to fetch LS and shove into the editor.
  * Once AFTER the Vue instantiation, to "refresh" the var.
 */
-var editor = document.getElementById('Editor'); 
+var editor = document.getElementById('Editor');
 
 // Constants
 var c = {
   db: 'db',
   LS: localStorage,
   LS_KEY: 'husk_user_storage'
-}
-
-// Methods to access Local storage "Database"
-var db = {
-  fetch: () => JSON.parse(c.LS.getItem(c.LS_KEY)),
-  save: o => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
 }
 
 
@@ -48,27 +43,32 @@ var App = new Vue ({
   },
 
   methods: {
-    save: function() {
-      db.save({
-        editor: editor.innerHTML,
-        settings: this.ls_schema.settings
-      })
+
+    save(payload) {
+      chrome.storage.sync.set(payload)
     },
 
-    load() { editor.innerHTML = db.fetch().editor }
+    saveEditor() {
+      chrome.storage.sync.set({editor: editor.innerHTML})
+    },
 
+    loadEditor() {
+      chrome.storage.sync.get('editor', function(res) {
+        editor.innerHTML = res.editor // async, must happen here.
+      })
+    }
   },
 
   created: function() {
 
-    // set up local storage if necessary / shove it into editor
-    if (!c.LS[c.LS_KEY]) this.save()
-    editor.innerHTML = db.fetch().editor
+    // set up  storage if necessary / shove it into editor
+    // if () this.save({editor: ''}) // figure out ERR handling if storage doesn't exist.
+    editor.innerHTML = this.loadEditor()
 
-    // Save on key press when time timer runs out. 
+    // Save on key press when time timer runs out.
     window.addEventListener('keyup', e => {
       clearTimeout(this.typingTimer);
-      this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
+      this.typingTimer = setTimeout(this.saveEditor(), this.acceptableTimeout)
     })
 
     window.addEventListener('keydown', e => {
@@ -77,14 +77,14 @@ var App = new Vue ({
 
     // Save on tab close
     window.onbeforeunload = (e) => {
-      this.save(); 
+      this.saveEditor();
       return null
     }
 
     /* Prevent overwrites when user has > 1 Husk tab open.
-     * Lose focus? --> Save contents ... Gain focus ? --> Load contents from Ls. */
+     * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls. */
     document.addEventListener('visibilitychange', () => {
-      document.hidden ? this.save() : this.load();
+      document.hidden ? this.saveEditor() : this.loadEditor();
     })
 
   }
