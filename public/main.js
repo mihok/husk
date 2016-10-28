@@ -1,7 +1,7 @@
 /** Husk's Javascript Goop.
-* Contents
+/* Contents
   * Globals
-  * Vue Instance 
+  * Vue Instance
   * Vue Objects
 
 * TODO: Figure a way around data caps.
@@ -9,7 +9,7 @@
 */
 
 /*************************
-Globals 
+Globals
 **************************/
 
 /* Regarding the "editor":
