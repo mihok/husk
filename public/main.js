@@ -13,9 +13,9 @@
 
 /* Regarding the "editor":
  * "editor" must be global: contentEditable elements can't be bound to vue data.
- * must be connected to DOM manually with getElementById, TWICE. 
+ * must be connected to DOM manually with getElementById, TWICE.
  * Once before new Vue -> to fetch LS and shove into the editor.
- * Once AFTER the Vue instantiation, to "refresh" the var. 
+ * Once AFTER the Vue instantiation, to "refresh" the var.
 */
 var editor = document.getElementById('Editor'); 
 
@@ -55,11 +55,13 @@ var App = new Vue ({
       })
     },
 
+    load() { editor.innerHTML = db.fetch().editor }
+
   },
 
   created: function() {
 
-    // set up local storage / shove it into editor
+    // set up local storage if necessary / shove it into editor
     if (!c.LS[c.LS_KEY]) this.save()
     editor.innerHTML = db.fetch().editor
 
@@ -75,9 +77,15 @@ var App = new Vue ({
 
     // Save on tab close
     window.onbeforeunload = (e) => {
-      App.save(); // `this` points to window obj.
+      this.save(); 
       return null
     }
+
+    /* Prevent overwrites when user has > 1 Husk tab open.
+     * Lose focus? --> Save contents ... Gain focus ? --> Load contents from Ls. */
+    document.addEventListener('visibilitychange', () => {
+      document.hidden ? this.save() : this.load();
+    })
 
   }
 })
