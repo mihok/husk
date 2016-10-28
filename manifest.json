@@ -13,5 +13,5 @@
   "homepage_url": "http://path/to/homepage",
   "offline_enabled": true,
   "optional_permissions": ["tabs"],
-  "permissions": ["tabs"]
+  "permissions": ["tabs", "storage"]
 }
