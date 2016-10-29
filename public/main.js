@@ -37,7 +37,7 @@ var App = new Vue ({
   el: '#App',
   data: {
     ls_schema: { editor: '', settings: {}, },
-    acceptableTimeout: 750,
+    acceptableTimeout: 2000,
     typingTimer: null,
     lastKeyPressTime: null,
   },
@@ -72,7 +72,7 @@ var App = new Vue ({
     // Save on key press when time timer runs out.
     window.addEventListener('keyup', e => {
       clearTimeout(this.typingTimer);
-      this.typingTimer = setTimeout(this.saveEditor(), this.acceptableTimeout)
+      this.typingTimer = setTimeout(this.saveEditor, this.acceptableTimeout)
     })
 
     window.addEventListener('keydown', e => {
