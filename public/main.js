@@ -41,16 +41,27 @@ var App = new Vue ({
     typingTimer: null,
     lastKeyPressTime: null,
   },
-
+  
   methods: {
 
     save(payload) { chrome.storage.sync.set(payload)},
 
-    saveEditor() { chrome.storage.sync.set({editor: editor.innerHTML}) },
+    saveEditor() {
+      chrome.storage.sync.set(chunkEditor(editor.innerHTML))
+    },
 
     loadEditor() {
-      chrome.storage.sync.get('editor', function(res) {
-        editor.innerHTML = res.editor // async, setting HTML must happen here.
+      chrome.storage.sync.get(null, function(res) {
+        console.log('loaded junk is', res)
+
+        var content = ""
+        Object.keys(res).forEach((key) => {
+          content += res[key]
+        })
+
+        console.log('content is: ', content)
+
+        editor.innerHTML = content // async, setting HTML must happen here.
       })
     }
   },
@@ -86,9 +97,39 @@ var App = new Vue ({
   }
 })
 
+
+
+/***************************
+Chunk the editor inner html
+****************************/
+
+/* Input editor.innerHTML, return a nested object of html properties. */
+function chunkEditor(text) {
+  let output = {}
+  let chunkSize = 200;
+  let iterations = text.length / chunkSize // number of loops to make.
+
+  let start = 0
+  let end = chunkSize
+  for (let i = 0; i < iterations; i++) {
+    output['editor' + i] = text.substr(start, end)
+    start = end 
+    end = start + chunkSize
+    console.log(`current iteration: ${i} / ${iterations}`, ` start = ${start}`, ` end = ${end}` )
+  }
+
+  console.log('chunkEditors output is', output)
+  return output;
+
+}
+
+
 /*************************
 Outro Jams
-**************************/
+ **************************/
+
 // MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
 var editor = document.getElementById('Editor')
+
+
