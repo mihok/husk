@@ -2,11 +2,9 @@
 /* Contents
   * Globals
   * Vue Instance
-  * Vue Objects
-
-* TODO: Figure a way around data caps.
-- chunking the editor data?
-*/
+  * Editor Chunking
+  * Outro Jams
+ */
 
 /*************************
 Globals
@@ -15,9 +13,10 @@ Globals
 /* Regarding the "editor":
  * "editor" must be global: contentEditable elements can't be bound to vue data.
  * must be connected to DOM manually with getElementById, TWICE.
- * Once before new Vue -> to fetch LS and shove into the editor.
+ * Once before new Vue -> to fetch storage and shove into the editor.
  * Once AFTER the Vue instantiation, to "refresh" the var.
-*/
+ */
+
 var editor = document.getElementById('Editor');
 
 // Constants
@@ -44,8 +43,6 @@ var App = new Vue ({
   
   methods: {
 
-    save(payload) { chrome.storage.sync.set(payload)},
-
     saveEditor() {
       chrome.storage.sync.set(chunkEditor(editor.innerHTML))
     },
@@ -53,14 +50,9 @@ var App = new Vue ({
     loadEditor() {
       chrome.storage.sync.get(null, function(res) {
         console.log('loaded junk is', res)
-
-        var content = ""
-        Object.keys(res).forEach((key) => {
-          content += res[key]
-        })
-
-        console.log('content is: ', content)
-
+        // reassemble the editor's content.
+        let content = ""
+        Object.keys(res).forEach((key) => { content += res[key] })
         editor.innerHTML = content // async, setting HTML must happen here.
       })
     }
@@ -99,16 +91,17 @@ var App = new Vue ({
 
 
 
-/***************************
-Chunk the editor inner html
-****************************/
+/*********************************************
+Editor Chunking: editor.innerHTML
+************************************************/
 
-/* Input editor.innerHTML, return a nested object of html properties. */
+/* Input editor.innerHTML, return an object of html properties. */
 function chunkEditor(text) {
   let output = {}
   let chunkSize = 200;
   let iterations = text.length / chunkSize // number of loops to make.
 
+  // create shuffling window for variable substring-ing
   let start = 0
   let end = chunkSize
   for (let i = 0; i < iterations; i++) {
