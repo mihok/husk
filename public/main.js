@@ -44,15 +44,14 @@ var App = new Vue ({
   methods: {
 
     saveEditor() {
-      chrome.storage.sync.set(chunkEditor(editor.innerHTML))
+      chrome.storage.sync.set({editor: chunkEditor(editor.innerHTML)})
     },
 
     loadEditor() {
-      chrome.storage.sync.get(null, function(res) {
-        console.log('loaded junk is', res)
+      chrome.storage.sync.get('editor', function(res) {
         // reassemble the editor's content.
         let content = ""
-        Object.keys(res).forEach((key) => { content += res[key] })
+        Object.keys(res.editor).forEach((key) => { content += res.editor[key] })
         editor.innerHTML = content // async, setting HTML must happen here.
       })
     }
@@ -72,20 +71,10 @@ var App = new Vue ({
     })
 
     // Save on tab close
-    // window.onbeforeunload = (e) => {
-    //   this.saveEditor();
-    //   return null
-    // }
-
-    /* Prevent overwrites when user has > 1 Husk tab open.
-     * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls.
-     * TODO: mass opening multiple new tabs (overloads the api sync request rate?) -- starts
-     * to load an empty editor, which then, on switching tabs, would overwrite things.
-     * NOTE: This is also breaking things when you paste + refresh shit.
-     */
-    // document.addEventListener('visibilitychange', () => {
-    //   document.hidden ? this.saveEditor() : this.loadEditor();
-    // })
+    window.onbeforeunload = (e) => {
+      this.saveEditor();
+      return null
+    }
 
   }
 })
@@ -109,10 +98,8 @@ function chunkEditor(text) {
     output['editor' + i] = text.substr(start, end)
     start = end
     end = start + chunkSize
-    console.log(`current iteration: ${i} / ${iterations}`, ` start = ${start}`, ` end = ${end}` )
   }
 
-  console.log('chunkEditors output is', output)
   return output;
 
 }
@@ -126,11 +113,17 @@ Outro Jams / Event listeners.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
 var editor = document.getElementById('Editor')
 
-
 // strip clipboard before pasting junk..
 editor.addEventListener('paste', (e) => {
-  console.log(e)
   e.preventDefault()
   let text = e.clipboardData.getData('text/plain')
   document.execCommand('insertHTML', false, text)
+})
+
+/* Prevent overwrites when user has > 1 Husk tab open.
+ * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls.
+ * BUG: This is also breaking things when you paste + refresh shit.
+ */
+document.addEventListener('visibilitychange', () => {
+  document.hidden ? App.saveEditor() : App.loadEditor();
 })
