@@ -40,7 +40,7 @@ var App = new Vue ({
     typingTimer: null,
     lastKeyPressTime: null,
   },
-  
+
   methods: {
 
     saveEditor() {
@@ -72,19 +72,20 @@ var App = new Vue ({
     })
 
     // Save on tab close
-    window.onbeforeunload = (e) => {
-      this.saveEditor();
-      return null
-    }
+    // window.onbeforeunload = (e) => {
+    //   this.saveEditor();
+    //   return null
+    // }
 
     /* Prevent overwrites when user has > 1 Husk tab open.
      * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls.
      * TODO: mass opening multiple new tabs (overloads the api sync request rate?) -- starts
      * to load an empty editor, which then, on switching tabs, would overwrite things.
+     * NOTE: This is also breaking things when you paste + refresh shit.
      */
-    document.addEventListener('visibilitychange', () => {
-      document.hidden ? this.saveEditor() : this.loadEditor();
-    })
+    // document.addEventListener('visibilitychange', () => {
+    //   document.hidden ? this.saveEditor() : this.loadEditor();
+    // })
 
   }
 })
@@ -98,7 +99,7 @@ Editor Chunking: editor.innerHTML
 /* Input editor.innerHTML, return an object of html properties. */
 function chunkEditor(text) {
   let output = {}
-  let chunkSize = 200;
+  let chunkSize = 400;
   let iterations = text.length / chunkSize // number of loops to make.
 
   // create shuffling window for variable substring-ing
@@ -106,7 +107,7 @@ function chunkEditor(text) {
   let end = chunkSize
   for (let i = 0; i < iterations; i++) {
     output['editor' + i] = text.substr(start, end)
-    start = end 
+    start = end
     end = start + chunkSize
     console.log(`current iteration: ${i} / ${iterations}`, ` start = ${start}`, ` end = ${end}` )
   }
@@ -117,12 +118,19 @@ function chunkEditor(text) {
 }
 
 
-/*************************
-Outro Jams
- **************************/
+/****************************
+Outro Jams / Event listeners.
+*****************************/
 
 // MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
 var editor = document.getElementById('Editor')
 
 
+// strip clipboard before pasting junk..
+editor.addEventListener('paste', (e) => {
+  console.log(e)
+  e.preventDefault()
+  let text = e.clipboardData.getData('text/plain')
+  document.execCommand('insertHTML', false, text)
+})
