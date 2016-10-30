@@ -23,7 +23,9 @@ var editor = document.getElementById('Editor');
 var c = {
   db: 'db',
   LS: localStorage,
-  LS_KEY: 'husk_user_storage'
+  LS_KEY: 'husk_user_storage',
+  CSSS: chrome.storage.sync.set,
+  CSSG: chrome.storage.sync.get,
 }
 
 
@@ -31,7 +33,6 @@ var c = {
 Vue Instance
 **************************/
 
-// Vue Objects
 var App = new Vue ({
   el: '#App',
   data: {
@@ -42,13 +43,10 @@ var App = new Vue ({
   },
 
   methods: {
-
-    saveEditor() {
-      chrome.storage.sync.set({editor: chunkEditor(editor.innerHTML)})
-    },
+    saveEditor() { c.CSSS({editor: chunkEditor(editor.innerHTML)}) },
 
     loadEditor() {
-      chrome.storage.sync.get('editor', function(res) {
+      c.CSSG('editor', function(res) {
         // reassemble the editor's content.
         let content = ""
         Object.keys(res.editor).forEach((key) => { content += res.editor[key] })
@@ -80,8 +78,7 @@ var App = new Vue ({
 })
 
 
-
-/*********************************************
+/***********************************************
 Editor Chunking: editor.innerHTML
 ************************************************/
 
@@ -101,7 +98,6 @@ function chunkEditor(text) {
   }
 
   return output;
-
 }
 
 
