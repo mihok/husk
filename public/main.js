@@ -36,14 +36,15 @@ Vue Instance
 var App = new Vue ({
   el: '#App',
   data: {
-    ls_schema: { editor: '', settings: {}, },
     acceptableTimeout: 2000,
     typingTimer: null,
     lastKeyPressTime: null,
   },
 
   methods: {
-    saveEditor() { c.CSSS({editor: chunkEditor(editor.innerHTML)}) },
+    saveEditor() {
+      c.CSSS({editor: chunkEditor(editor.innerHTML)})
+    },
 
     loadEditor() {
       c.CSSG('editor', function(res) {
@@ -117,8 +118,7 @@ editor.addEventListener('paste', (e) => {
 })
 
 /* Prevent overwrites when user has > 1 Husk tab open.
- * Lose focus? --> Save contents ... Gain focus ? --> loadEditor contents from Ls.
- * BUG: This is also breaking things when you paste + refresh shit.
+ * BUG: Paste something big / a few things -> refresh: it duplicates itself.
  */
 document.addEventListener('visibilitychange', () => {
   document.hidden ? App.saveEditor() : App.loadEditor();
