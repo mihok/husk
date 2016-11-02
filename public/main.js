@@ -2,30 +2,29 @@
 /* Contents
   * Globals
   * Vue Instance
-  * Editor Chunking
-  * Outro Jams
+  * Functions
+  * Outro Jams (event listeners + moar globals)
  */
 
 /*************************
 Globals
 **************************/
 
-/* Regarding the "editor":
- * "editor" must be global: contentEditable elements can't be bound to vue data.
- * must be connected to DOM manually with getElementById, TWICE.
- * Once before new Vue -> to fetch storage and shove into the editor.
- * Once AFTER the Vue instantiation, to "refresh" the var.
- */
-
+/* "editor" must be global: contentEditable elements can't be bound to vue data.*/
 var editor = document.getElementById('Editor');
 
 // Constants
-var c = {
-  db: 'db',
+const c = {
   LS: localStorage,
   LS_KEY: 'husk_user_storage',
-  CSSS: chrome.storage.sync.set,
-  CSSG: chrome.storage.sync.get,
+}
+
+// Storage methods
+const db = {
+  CSS_SET: chrome.storage.sync.set,
+  CSS_GET: chrome.storage.sync.get,
+  LS_SET: (o) => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
+  LS_GET: () => JSON.parse(c.LS.getItem(c.LS_KEY))
 }
 
 
@@ -39,25 +38,67 @@ var App = new Vue ({
     acceptableTimeout: 2000,
     typingTimer: null,
     lastKeyPressTime: null,
+    settings: {
+      syncStorage: true,
+    }
   },
 
   methods: {
     saveEditor() {
-      c.CSSS({editor: chunkEditor(editor.innerHTML)})
+      if (this.settings.syncStorage) {
+        db.CSS_SET({
+          editor: chunkEditor(editor.innerHTML),
+          settings: this.settings,
+        })
+      } else {
+        db.LS_SET({
+          editor: editor.innerHTML,
+          settings: this.settings,
+        })
+      }
     },
 
     loadEditor() {
-      c.CSSG('editor', function(res) {
-        // reassemble the editor's content.
-        let content = ""
-        Object.keys(res.editor).forEach((key) => { content += res.editor[key] })
-        editor.innerHTML = content // async, setting HTML must happen here.
-      })
+      if (this.settings.syncStorage) {
+        db.CSS_GET('editor', function(res) {
+          if (res.editor == null) return //loading is async, check that db stuff exists first.
+
+          // reassemble the editor's content.
+          let content = ""
+          Object.keys(res.editor).forEach((key) => { content += res.editor[key] })
+          editor.innerHTML = content // async, setting HTML must happen here.
+        })
+      } else {
+        editor.innerHTML = db.LS_GET().editor
+      }
+    },
+
+    // Prepare storage (whether sync or localStorage)
+    initStorage() {
+      if (this.settings.syncStorage) {
+        db.CSS_GET('editor', res => {
+          res == null ? this.saveEditor() : this.loadEditor()
+        })
+      } else {
+        db.LS_GET() == null ? this.saveEditor : this.loadEditor();
+      }
+    },
+
+    /**
+     * TODO: Transfer data from one storage to another (currently just toggles)
+     * Dumps storage contents from local -> chrome or inverse
+     * Depending on value of this.syncStorage.
+     */
+    toggleSyncStorage() {
+      this.saveEditor()
+      this.settings.syncStorage = !this.settings.syncStorage
+      this.loadEditor()
     }
+
   },
 
   created: function() {
-    this.loadEditor()
+    this.initStorage();
 
     // Save on key press when time timer runs out.
     window.addEventListener('keyup', e => {
@@ -80,10 +121,14 @@ var App = new Vue ({
 
 
 /***********************************************
-Editor Chunking: editor.innerHTML
+Functions
 ************************************************/
 
-/* Input editor.innerHTML, return an object of html properties. */
+/**
+ * Split large strings of innerHTML into an organized object.
+ * @param  {string} text    The husk editor's innerHTML content.
+ * @return {object}         Spread a string across multiple key/value pairs.
+ */
 function chunkEditor(text) {
   let output = {}
   let chunkSize = 400;
@@ -123,3 +168,18 @@ editor.addEventListener('paste', (e) => {
 document.addEventListener('visibilitychange', () => {
   document.hidden ? App.saveEditor() : App.loadEditor();
 })
+
+
+/* Watch chrome storage (event listener)
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+  for (key in changes) {
+    var storageChange = changes[key];
+    console.log('Storage key "%s" in namespace "%s" changed. ' +
+                'Old value was "%s", new value is "%s".',
+                key,
+                namespace,
+                storageChange.oldValue,
+                storageChange.newValue);
+  }
+});
+*/

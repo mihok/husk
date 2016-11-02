@@ -11,6 +11,11 @@
     <main id="App">
       <article contentEditable id="Editor"></article>
       <section id="dummySpace"></section>
+      <button @click="toggleSyncStorage()">
+        <span v-if="settings.syncStorage">Disable Sync?</span>
+        <span v-else>Enable Sync?</span>
+      </button>
+
     </main>
 
     <script src="./node_modules/vue/dist/vue.js" charset="utf-8"></script>
