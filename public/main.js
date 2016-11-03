@@ -6,9 +6,9 @@
   * Outro Jams (event listeners + moar globals)
  */
 
-/*************************
+/***********************************************
 Globals
-**************************/
+ ***********************************************/
 
 /* "editor" must be global: contentEditable elements can't be bound to vue data.*/
 var editor = document.getElementById('Editor');
@@ -35,9 +35,9 @@ const db = {
   }
 };
 
-/*************************
+/***********************************************
 Vue Instance
-**************************/
+ ***********************************************/
 
 var App = new Vue ({
   el: '#App',
@@ -56,7 +56,7 @@ var App = new Vue ({
         db.CSS_SET( o || {
           editor: chunkEditor(editor.innerHTML),
           settings: this.settings
-        }, () => console.log('chrome sync save made:'))
+        }, () => console.log('chrome storage sync saved'))
       } else {
         db.LS_SET( o || {
           editor: editor.innerHTML,
@@ -66,21 +66,26 @@ var App = new Vue ({
       }
     },
 
-    loadEditor() {
+    load() {
+      // load from LS
       if (!this.settings.syncStorage) {
-        editor.innerHTML = db.LS_GET().editor;
-        console.log('loaded local storage editor')
-      } else {
-        db.CSS_GET('editor', function (res) {
-          if (res.editor == null) return; //loading is async, check that db stuff exists first.
+        const state = db.LS_GET();
+        editor.innerHTML = state.editor;
+        this.settings = state.settings;
+        console.log('Local storage loaded');
 
-          console.log(' loading chrome storage editor');
-          // reassemble the editor's content.
-          let content = "";
-          Object.keys(res.editor).forEach((key) => {
-            content += res.editor[key]
+      // Load from Chrome storage
+      } else {
+        db.CSS_GET('editor', function (state) {
+          if (state.editor == null) return; //loading is async, check that db stuff exists first.
+
+          let content = ""; // reassemble editor contents
+          Object.keys(state.editor).forEach((key) => {
+            content += state.editor[key]
           });
           editor.innerHTML = content; // async, setting HTML must happen here.
+          this.settings = state.editor;
+          console.log('chrome sync storage loaded.')
         })
       }
     },
@@ -90,14 +95,13 @@ var App = new Vue ({
      * Prioritizes checking sync first, otherwise localStorage will overwrite settings.
      */
     initStorage() {
-
       // if localStorage doesn't exist, instantiate it with its schema.
       if (!db.LS_GET()) db.LS_SET(db.schema);
 
       // If sync storage exists, set up Husk with it's values
       db.CSS_GET(null, (res) => {
         this.settings.syncStorage = !!(res.settings !== undefined && res.settings.syncStorage === true);
-        this.loadEditor()
+        this.load()
       })
     },
 
@@ -124,27 +128,6 @@ var App = new Vue ({
   created: function() {
     this.initStorage();
     initEventListeners();
-
-    /*
-     // Save on key press when time timer runs out.
-     window.addEventListener('keyup', () => {
-     clearTimeout(this.typingTimer);
-     this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
-     });
-
-     window.addEventListener('keydown', () => {
-     clearTimeout(this.typingTimer)
-     });
-
-     window.onbeforeunload = (e) => {
-     this.save();
-     return null
-     }
-
-     document.addEventListener('visibilitychange', () => {
-     document.hidden ? this.save() : this.initStorage();
-     });
-     */
   }
 });
 
@@ -189,10 +172,10 @@ function initEventListeners() {
     clearTimeout(App.typingTimer)
   });
 
-  window.onbeforeunload = (e) => {
+  window.onbeforeunload = () => {
     App.save();
     return null
-  }
+  };
 
   /* Prevent overwrites when user has > 1 Husk tab open.
    * BUG: Paste something big / a few things -> refresh: it duplicates itself.
@@ -203,15 +186,15 @@ function initEventListeners() {
 }
 
 
-/****************************
+/***********************************************
 Outro Jams / Event listeners.
-*****************************/
+ ***********************************************/
 
 // MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
 editor = document.getElementById('Editor');
 
-// strip clipboard before pasting junk..
+// strip clipboard before pasting anything. (Must be at end of file; won't work in Vue.created() )
 editor.addEventListener('paste', (e) => {
   e.preventDefault();
   let text = e.clipboardData.getData('text/plain');
