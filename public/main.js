@@ -23,6 +23,7 @@ const c = {
 const db = {
   CSS_SET: chrome.storage.sync.set,
   CSS_GET: chrome.storage.sync.get,
+  CSS_CLEAR: chrome.storage.sync.clear,
   LS_SET: (o) => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
   LS_GET: () => JSON.parse(c.LS.getItem(c.LS_KEY)),
 
@@ -50,28 +51,30 @@ var App = new Vue ({
   },
 
   methods: {
-
-    save() {
+    save(o) {
       if (this.settings.syncStorage) {
-        db.CSS_SET({
+        db.CSS_SET( o || {
           editor: chunkEditor(editor.innerHTML),
           settings: this.settings
         }, () => console.log('chrome sync save made:'))
       } else {
-        db.LS_SET({
+        db.LS_SET( o || {
           editor: editor.innerHTML,
           settings: this.settings
-        })
+        });
+        console.log('local storage saved')
       }
     },
 
     loadEditor() {
       if (!this.settings.syncStorage) {
-        editor.innerHTML = db.LS_GET().editor
+        editor.innerHTML = db.LS_GET().editor;
+        console.log('loaded local storage editor')
       } else {
         db.CSS_GET('editor', function (res) {
           if (res.editor == null) return; //loading is async, check that db stuff exists first.
 
+          console.log(' loading chrome storage editor');
           // reassemble the editor's content.
           let content = "";
           Object.keys(res.editor).forEach((key) => {
@@ -82,59 +85,66 @@ var App = new Vue ({
       }
     },
 
-    // Prepare storage (whether sync or localStorage)
+    /**
+     * Prepares storage locations and loads settings.
+     * Prioritizes checking sync first, otherwise localStorage will overwrite settings.
+     */
     initStorage() {
-      let state;
 
       // if localStorage doesn't exist, instantiate it with its schema.
       if (!db.LS_GET()) db.LS_SET(db.schema);
 
-      // check the value of syncSetting, apply it to App.
-      else {
-        state = db.LS_GET();
-        console.log('state is', state);
-        this.settings.syncStorage = state.settings.syncStorage
-      }
-
-      // Sync enabled -> if nothing is there, save (will
-      if (this.settings.syncStorage) {
-        db.CSS_GET('editor', res => {
-          res == null ? this.save() : this.loadEditor();
-        })
-      } else db.LS_GET() == null ? this.save() : this.loadEditor();
+      // If sync storage exists, set up Husk with it's values
+      db.CSS_GET(null, (res) => {
+        this.settings.syncStorage = !!(res.settings !== undefined && res.settings.syncStorage === true);
+        this.loadEditor()
+      })
     },
 
     /**
-     * TODO: Transfer data from one storage to another (currently just toggles)
-     * Dumps storage contents from local -> chrome or inverse
-     * Depending on value of this.syncStorage.
+     * Switch storage modes between local and sync.
+     * Gets the current values of the text editor, and the user's settings
+     * -> saves them -> switches storages -> re-saves currentState to new storage.
      */
     toggleSyncStorage() {
-      this.save();
+      const tempState = { editor: editor, settings: this.settings };
+
+      this.save(); // save to old editor before switching storage location.
       this.settings.syncStorage = !this.settings.syncStorage;
-      this.loadEditor()
+      if (!this.settings.syncStorage) {
+        db.CSS_CLEAR(); // wipe chrome store so app loads from LS next init.
+        this.save({
+          editor: tempState.editor.innerHTML,
+          settings: tempState.settings,
+        })
+      } else this.save(tempState)
     }
   },
 
   created: function() {
     this.initStorage();
+    initEventListeners();
 
-    // Save on key press when time timer runs out.
-    window.addEventListener('keyup', () => {
-      clearTimeout(this.typingTimer);
-      this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
-    });
+    /*
+     // Save on key press when time timer runs out.
+     window.addEventListener('keyup', () => {
+     clearTimeout(this.typingTimer);
+     this.typingTimer = setTimeout(this.save, this.acceptableTimeout)
+     });
 
-    window.addEventListener('keydown', () => {
-      clearTimeout(this.typingTimer)
-    });
+     window.addEventListener('keydown', () => {
+     clearTimeout(this.typingTimer)
+     });
 
-    // Save on tab close
-    // window.onbeforeunload = (e) => {
-    //   this.save();
-    //   return null
-    // }
+     window.onbeforeunload = (e) => {
+     this.save();
+     return null
+     }
 
+     document.addEventListener('visibilitychange', () => {
+     document.hidden ? this.save() : this.initStorage();
+     });
+     */
   }
 });
 
@@ -165,6 +175,33 @@ function chunkEditor(text) {
   return output;
 }
 
+/**
+ * Setup Event Listeners across the app
+ */
+function initEventListeners() {
+  // Save on key press when time timer runs out.
+  window.addEventListener('keyup', () => {
+    clearTimeout(App.typingTimer);
+    App.typingTimer = setTimeout(App.save, App.acceptableTimeout)
+  });
+
+  window.addEventListener('keydown', () => {
+    clearTimeout(App.typingTimer)
+  });
+
+  window.onbeforeunload = (e) => {
+    App.save();
+    return null
+  }
+
+  /* Prevent overwrites when user has > 1 Husk tab open.
+   * BUG: Paste something big / a few things -> refresh: it duplicates itself.
+   */
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? App.save() : App.initStorage();
+  });
+}
+
 
 /****************************
 Outro Jams / Event listeners.
@@ -181,24 +218,4 @@ editor.addEventListener('paste', (e) => {
   document.execCommand('insertHTML', false, text)
 });
 
-/* Prevent overwrites when user has > 1 Husk tab open.
- * BUG: Paste something big / a few things -> refresh: it duplicates itself.
- */
-document.addEventListener('visibilitychange', () => {
-  document.hidden ? App.save() : App.loadEditor();
-});
 
-
-/* Watch chrome storage (event listener)
-chrome.storage.onChanged.addListener(function(changes, namespace) {
-  for (key in changes) {
-    var storageChange = changes[key];
-    console.log('Storage key "%s" in namespace "%s" changed. ' +
-                'Old value was "%s", new value is "%s".',
-                key,
-                namespace,
-                storageChange.oldValue,
-                storageChange.newValue);
-  }
-});
-*/
