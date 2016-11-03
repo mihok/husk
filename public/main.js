@@ -6,9 +6,9 @@
   * Outro Jams (event listeners + moar globals)
  */
 
-/*************************
+/***********************************************
 Globals
-**************************/
+ ***********************************************/
 
 /* "editor" must be global: contentEditable elements can't be bound to vue data.*/
 var editor = document.getElementById('Editor');
@@ -17,20 +17,27 @@ var editor = document.getElementById('Editor');
 const c = {
   LS: localStorage,
   LS_KEY: 'husk_user_storage',
-}
+};
 
 // Storage methods
 const db = {
   CSS_SET: chrome.storage.sync.set,
   CSS_GET: chrome.storage.sync.get,
+  CSS_CLEAR: chrome.storage.sync.clear,
   LS_SET: (o) => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
-  LS_GET: () => JSON.parse(c.LS.getItem(c.LS_KEY))
-}
+  LS_GET: () => JSON.parse(c.LS.getItem(c.LS_KEY)),
 
+  schema: {
+    editor: '',
+    settings: {
+      syncStorage: false,
+    },
+  }
+};
 
-/*************************
+/***********************************************
 Vue Instance
-**************************/
+ ***********************************************/
 
 var App = new Vue ({
   el: '#App',
@@ -39,85 +46,90 @@ var App = new Vue ({
     typingTimer: null,
     lastKeyPressTime: null,
     settings: {
-      syncStorage: true,
+      syncStorage: undefined,
     }
   },
 
   methods: {
-    saveEditor() {
+    save(o) {
       if (this.settings.syncStorage) {
-        db.CSS_SET({
+        db.CSS_SET( o || {
           editor: chunkEditor(editor.innerHTML),
-          settings: this.settings,
-        })
+          settings: this.settings
+        }, () => console.log('chrome storage sync saved'))
       } else {
-        db.LS_SET({
+        db.LS_SET( o || {
           editor: editor.innerHTML,
-          settings: this.settings,
-        })
+          settings: this.settings
+        });
+        console.log('local storage saved')
       }
     },
 
-    loadEditor() {
-      if (this.settings.syncStorage) {
-        db.CSS_GET('editor', function(res) {
-          if (res.editor == null) return //loading is async, check that db stuff exists first.
+    load() {
+      // load from LS
+      if (!this.settings.syncStorage) {
+        const state = db.LS_GET();
+        editor.innerHTML = state.editor;
+        this.settings = state.settings;
+        console.log('Local storage loaded');
 
-          // reassemble the editor's content.
-          let content = ""
-          Object.keys(res.editor).forEach((key) => { content += res.editor[key] })
-          editor.innerHTML = content // async, setting HTML must happen here.
-        })
+      // Load from Chrome storage
       } else {
-        editor.innerHTML = db.LS_GET().editor
-      }
-    },
+        db.CSS_GET('editor', function (state) {
+          if (state.editor == null) return; //loading is async, check that db stuff exists first.
 
-    // Prepare storage (whether sync or localStorage)
-    initStorage() {
-      if (this.settings.syncStorage) {
-        db.CSS_GET('editor', res => {
-          res == null ? this.saveEditor() : this.loadEditor()
+          let content = ""; // reassemble editor contents
+          Object.keys(state.editor).forEach((key) => {
+            content += state.editor[key]
+          });
+          editor.innerHTML = content; // async, setting HTML must happen here.
+          this.settings = state.editor;
+          console.log('chrome sync storage loaded.')
         })
-      } else {
-        db.LS_GET() == null ? this.saveEditor : this.loadEditor();
       }
     },
 
     /**
-     * TODO: Transfer data from one storage to another (currently just toggles)
-     * Dumps storage contents from local -> chrome or inverse
-     * Depending on value of this.syncStorage.
+     * Prepares storage locations and loads settings.
+     * Prioritizes checking sync first, otherwise localStorage will overwrite settings.
+     */
+    initStorage() {
+      // if localStorage doesn't exist, instantiate it with its schema.
+      if (!db.LS_GET()) db.LS_SET(db.schema);
+
+      // If sync storage exists, set up Husk with it's values
+      db.CSS_GET(null, (res) => {
+        this.settings.syncStorage = !!(res.settings !== undefined && res.settings.syncStorage === true);
+        this.load()
+      })
+    },
+
+    /**
+     * Switch storage modes between local and sync.
+     * Gets the current values of the text editor, and the user's settings
+     * -> saves them -> switches storages -> re-saves currentState to new storage.
      */
     toggleSyncStorage() {
-      this.saveEditor()
-      this.settings.syncStorage = !this.settings.syncStorage
-      this.loadEditor()
-    }
+      const tempState = { editor: editor, settings: this.settings };
 
+      this.save(); // save to old editor before switching storage location.
+      this.settings.syncStorage = !this.settings.syncStorage;
+      if (!this.settings.syncStorage) {
+        db.CSS_CLEAR(); // wipe chrome store so app loads from LS next init.
+        this.save({
+          editor: tempState.editor.innerHTML,
+          settings: tempState.settings,
+        })
+      } else this.save(tempState)
+    }
   },
 
   created: function() {
     this.initStorage();
-
-    // Save on key press when time timer runs out.
-    window.addEventListener('keyup', e => {
-      clearTimeout(this.typingTimer);
-      this.typingTimer = setTimeout(this.saveEditor, this.acceptableTimeout)
-    })
-
-    window.addEventListener('keydown', e => {
-      clearTimeout(this.typingTimer)
-    })
-
-    // Save on tab close
-    window.onbeforeunload = (e) => {
-      this.saveEditor();
-      return null
-    }
-
+    initEventListeners();
   }
-})
+});
 
 
 /***********************************************
@@ -130,56 +142,63 @@ Functions
  * @return {object}         Spread a string across multiple key/value pairs.
  */
 function chunkEditor(text) {
-  let output = {}
+  let output = {};
   let chunkSize = 400;
-  let iterations = text.length / chunkSize // number of loops to make.
+  let iterations = text.length / chunkSize; // number of loops to make.
 
   // create shuffling window for variable substring-ing
-  let start = 0
-  let end = chunkSize
+  let start = 0;
+  let end = chunkSize;
   for (let i = 0; i < iterations; i++) {
-    output['editor' + i] = text.substr(start, end)
-    start = end
+    output['editor' + i] = text.substr(start, end);
+    start = end;
     end = start + chunkSize
   }
 
   return output;
 }
 
+/**
+ * Setup Event Listeners across the app
+ */
+function initEventListeners() {
+  // Save on key press when time timer runs out.
+  window.addEventListener('keyup', () => {
+    clearTimeout(App.typingTimer);
+    App.typingTimer = setTimeout(App.save, App.acceptableTimeout)
+  });
 
-/****************************
+  window.addEventListener('keydown', () => {
+    clearTimeout(App.typingTimer)
+  });
+
+  window.onbeforeunload = () => {
+    App.save();
+    return null
+  };
+
+  /* Prevent overwrites when user has > 1 Husk tab open.
+   * BUG: Paste something big / a few things -> refresh: it duplicates itself.
+   */
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? App.save() : App.initStorage();
+  });
+}
+
+
+/***********************************************
 Outro Jams / Event listeners.
-*****************************/
+ ***********************************************/
 
 // MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
-var editor = document.getElementById('Editor')
+editor = document.getElementById('Editor');
 
-// strip clipboard before pasting junk..
+// strip clipboard before pasting anything. (Must be at end of file; won't work in Vue.created() )
 editor.addEventListener('paste', (e) => {
-  e.preventDefault()
-  let text = e.clipboardData.getData('text/plain')
+  e.preventDefault();
+  let text = e.clipboardData.getData('text/plain');
   document.execCommand('insertHTML', false, text)
-})
-
-/* Prevent overwrites when user has > 1 Husk tab open.
- * BUG: Paste something big / a few things -> refresh: it duplicates itself.
- */
-document.addEventListener('visibilitychange', () => {
-  document.hidden ? App.saveEditor() : App.loadEditor();
-})
-
-
-/* Watch chrome storage (event listener)
-chrome.storage.onChanged.addListener(function(changes, namespace) {
-  for (key in changes) {
-    var storageChange = changes[key];
-    console.log('Storage key "%s" in namespace "%s" changed. ' +
-                'Old value was "%s", new value is "%s".',
-                key,
-                namespace,
-                storageChange.oldValue,
-                storageChange.newValue);
-  }
 });
-*/
+
+

@@ -21,7 +21,7 @@ body {
 #App {
   display: flex;
   flex-direction: column;
-  font-family: courier; /* Just for now, I swear.*/
+  font-family: courier, sans-serif; /* Just for now, I swear.*/
   align-items: center;
   justify-content: center;
   flex-grow: 1;
