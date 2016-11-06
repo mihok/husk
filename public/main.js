@@ -6,9 +6,9 @@
   * Outro Jams (event listeners + moar globals)
  */
 
-/***********************************************
+/*=======================================*
 Globals
- ***********************************************/
+*========================================*/
 
 /* "editor" must be global: contentEditable elements can't be bound to vue data.*/
 var editor = document.getElementById('Editor');
@@ -35,9 +35,9 @@ const db = {
   }
 };
 
-/***********************************************
+/*=======================================*
 Vue Instance
- ***********************************************/
+*========================================*/
 
 var App = new Vue ({
   el: '#App',
@@ -132,9 +132,9 @@ var App = new Vue ({
 });
 
 
-/***********************************************
+/*=======================================*
 Functions
-************************************************/
+*========================================*/
 
 /**
  * Split large strings of innerHTML into an organized object.
@@ -185,10 +185,26 @@ function initEventListeners() {
   });
 }
 
+/* =========================================
+Setting up "Pen" library.
+// NOTE: Must happen after vue instantiation.
+============================================*/
+let HuskEditorOptions = {
+  editor: document.getElementById('Editor'),
+  class: 'pen',
+  linksInNewWindow: true,
+  list: [
+    'blockquote', 'h2', 'h3', 'p', 'insertorderedlist', 'insertunorderedlist',
+    'indent', 'outdent', 'bold', 'italic', 'underline', 'createlink'
+  ]
+}
 
-/***********************************************
+const HuskEditor = new Pen(HuskEditorOptions)
+
+
+/*=======================================*
 Outro Jams / Event listeners.
- ***********************************************/
+*========================================*/
 
 // MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
 // Not ideal, but necessary because v-model does not work with contentEditable html.
@@ -200,5 +216,3 @@ editor.addEventListener('paste', (e) => {
   let text = e.clipboardData.getData('text/plain');
   document.execCommand('insertHTML', false, text)
 });
-
-
