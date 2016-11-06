@@ -2,14 +2,15 @@
 
 ## Background
 
-Husk is a chrome extension inspired by [Papier](https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia). Husk will allow users to write text in their new tab page, as well as (hopefully) syncing data, basic markdown support, and text folding. 
+Husk is a chrome extension inspired by [Papier](https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia). Husk will allow users to write text in their new tab page, as well as (hopefully) syncing data, basic markdown support, and text folding.
 
 ## Build Instructions
 
 ```
 git clone https://github.com/teesloane/husk.git
 cd husk
-npm -i 
+npm -i
+bower install
 ```
 
 ## CONTRIBUTIONS
