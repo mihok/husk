@@ -9,7 +9,7 @@ Husk is a chrome extension inspired by [Papier](https://chrome.google.com/websto
 ```
 git clone https://github.com/teesloane/husk.git
 cd husk
-npm -i
+npm i
 bower install
 ```
 
