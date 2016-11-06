@@ -14,24 +14,25 @@ Globals
 var editor = document.getElementById('Editor');
 
 // Constants
-const c = {
-  LS: localStorage,
-  LS_KEY: 'husk_user_storage',
-};
-
-// Storage methods
 const db = {
-  CSS_SET: chrome.storage.sync.set,
-  CSS_GET: chrome.storage.sync.get,
-  CSS_CLEAR: chrome.storage.sync.clear,
-  LS_SET: (o) => c.LS.setItem(c.LS_KEY, JSON.stringify(o)),
-  LS_GET: () => JSON.parse(c.LS.getItem(c.LS_KEY)),
-
-  schema: {
-    editor: '',
-    settings: {
-      syncStorage: false,
+  CS: chrome.storage.sync,
+  LS: {
+    key: 'husk_user_storage',
+    schema: {
+      editor: '',
+      settings: {
+        syncStorage: false,
+      },
     },
+    init() {
+      this.set(this.schema);
+    },
+    set(obj) {
+      return window.localStorage.setItem(this.key, JSON.stringify(obj));
+    },
+    get() {
+      return JSON.parse(window.localStorage.getItem(this.key));
+    }
   }
 };
 
@@ -51,14 +52,14 @@ var App = new Vue ({
   },
 
   methods: {
-    save(o) {
+    save(obj) {
       if (this.settings.syncStorage) {
-        db.CSS_SET( o || {
+        db.CS.set( obj || {
           editor: chunkEditor(editor.innerHTML),
           settings: this.settings
         }, () => console.log('chrome storage sync saved'))
       } else {
-        db.LS_SET( o || {
+        db.LS.set( obj || {
           editor: editor.innerHTML,
           settings: this.settings
         });
@@ -69,14 +70,14 @@ var App = new Vue ({
     load() {
       // load from LS
       if (!this.settings.syncStorage) {
-        const state = db.LS_GET();
+        const state = db.LS.get();
         editor.innerHTML = state.editor;
         this.settings = state.settings;
         console.log('Local storage loaded');
 
       // Load from Chrome storage
       } else {
-        db.CSS_GET('editor', function (state) {
+        db.CS.get('editor', function (state) {
           if (state.editor == null) return; //loading is async, check that db stuff exists first.
 
           let content = ""; // reassemble editor contents
@@ -96,11 +97,11 @@ var App = new Vue ({
      */
     initStorage() {
       // if localStorage doesn't exist, instantiate it with its schema.
-      if (!db.LS_GET()) db.LS_SET(db.schema);
+      if (!db.LS.get()) db.LS.init();
 
       // If sync storage exists, set up Husk with it's values
-      db.CSS_GET(null, (res) => {
-        this.settings.syncStorage = !!(res.settings !== undefined && res.settings.syncStorage === true);
+      db.CS.get(null, (res) => {
+        this.settings.syncStorage = (res.settings !== undefined && res.settings.syncStorage === true);
         this.load()
       })
     },
@@ -116,16 +117,18 @@ var App = new Vue ({
       this.save(); // save to old editor before switching storage location.
       this.settings.syncStorage = !this.settings.syncStorage;
       if (!this.settings.syncStorage) {
-        db.CSS_CLEAR(); // wipe chrome store so app loads from LS next init.
+        db.CS.clear(); // wipe chrome store so app loads from LS next init.
         this.save({
           editor: tempState.editor.innerHTML,
           settings: tempState.settings,
         })
-      } else this.save(tempState)
+      } else {
+        this.save(tempState)
+      }
     }
   },
 
-  created: function() {
+  created() {
     this.initStorage();
     initEventListeners();
   }
