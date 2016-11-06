@@ -1,0 +1,20 @@
+{
+  "name": "husk",
+  "homepage": "https://github.com/teesloane/husk",
+  "authors": [
+    "teesloane <tylersloane@gmail.com>"
+  ],
+  "description": "",
+  "main": "public/main.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "pen": "^0.2.2"
+  }
+}

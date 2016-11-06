@@ -6,6 +6,9 @@
     "url": "git@github.com:teesloane/husk.git",
     "type": "git"
   },
+  "scripts": {
+    "postinstall": "bower install"
+  },
   "author": "teesloane <tylersloane@gmail.com>",
   "license": "MIT",
   "dependencies": {
