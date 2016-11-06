@@ -21,7 +21,7 @@ const db = {
     schema: {
       editor: '',
       settings: {
-        syncStorage: false,
+        enableSyncStorage: false,
       },
     },
     init() {
@@ -47,21 +47,21 @@ var App = new Vue ({
     typingTimer: null,
     lastKeyPressTime: null,
     settings: {
-      syncStorage: undefined,
+      enableSyncStorage: false,
     }
   },
 
   methods: {
     save(obj) {
-      if (this.settings.syncStorage) {
+      if (this.settings.enableSyncStorage) {
         db.CS.set( obj || {
           editor: chunkEditor(editor.innerHTML),
-          settings: this.settings
+          settings: this.settings,
         }, () => console.log('chrome storage sync saved'))
       } else {
         db.LS.set( obj || {
           editor: editor.innerHTML,
-          settings: this.settings
+          settings: this.settings,
         });
         console.log('local storage saved')
       }
@@ -69,7 +69,7 @@ var App = new Vue ({
 
     load() {
       // load from LS
-      if (!this.settings.syncStorage) {
+      if (!this.settings.enableSyncStorage) {
         const state = db.LS.get();
         editor.innerHTML = state.editor;
         this.settings = state.settings;
@@ -101,7 +101,7 @@ var App = new Vue ({
 
       // If sync storage exists, set up Husk with it's values
       db.CS.get(null, (res) => {
-        this.settings.syncStorage = (res.settings !== undefined && res.settings.syncStorage === true);
+        this.settings.enableSyncStorage = (res.hasOwnProperty('settings') && res.settings.enableSyncStorage);
         this.load()
       })
     },
@@ -115,8 +115,8 @@ var App = new Vue ({
       const tempState = { editor: editor, settings: this.settings };
 
       this.save(); // save to old editor before switching storage location.
-      this.settings.syncStorage = !this.settings.syncStorage;
-      if (!this.settings.syncStorage) {
+      this.settings.enableSyncStorage = !this.settings.enableSyncStorage;
+      if (!this.settings.enableSyncStorage) {
         db.CS.clear(); // wipe chrome store so app loads from LS next init.
         this.save({
           editor: tempState.editor.innerHTML,
