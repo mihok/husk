@@ -44,7 +44,8 @@ var App = new Vue ({
     lastKeyPressTime: null,
     settings: {
       enableSyncStorage: false,
-    }
+    },
+    menuOpen: false,
   },
 
   methods: {
