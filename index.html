@@ -1,4 +1,3 @@
-<!-- TODO: Replace dummySpace with a menu / or something semantically more clear. -->
 
 <!doctype html>
 <html lang="en">
@@ -13,7 +12,7 @@
       <article contentEditable id="Editor"></article>
       <section id="dummySpace"></section>
       <button @click="toggleSyncStorage()">
-        <span v-if="settings.syncStorage">Disable Sync?</span>
+        <span v-if="settings.enableSyncStorage">Disable Sync?</span>
         <span v-else>Enable Sync?</span>
       </button>
     </main>
