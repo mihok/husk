@@ -15,24 +15,20 @@ var editor = document.getElementById('Editor');
 
 // Constants
 const db = {
+  schema: {
+    editor: '',
+    settings: {
+      enableSyncStorage: false,
+    },
+  },
+
   CS: chrome.storage.sync,
+
   LS: {
     key: 'husk_user_storage',
-    schema: {
-      editor: '',
-      settings: {
-        enableSyncStorage: false,
-      },
-    },
-    init() {
-      this.set(this.schema);
-    },
-    set(obj) {
-      return window.localStorage.setItem(this.key, JSON.stringify(obj));
-    },
-    get() {
-      return JSON.parse(window.localStorage.getItem(this.key));
-    }
+    init() { this.set(db.schema); },
+    set: (obj) => window.localStorage.setItem(db.LS.key, JSON.stringify(obj)),
+    get: () => JSON.parse(window.localStorage.getItem(db.LS.key))
   }
 };
 
