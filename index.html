@@ -9,12 +9,27 @@
   </head>
   <body>
     <main id="App">
+
+      <!-- Husk Editor -->
       <article contentEditable id="Editor"></article>
       <section id="dummySpace"></section>
-      <button @click="toggleSyncStorage()">
-        <span v-if="settings.enableSyncStorage">Disable Sync?</span>
-        <span v-else>Enable Sync?</span>
-      </button>
+
+      <!-- Menu Nav -->
+      <nav id="huskMenu">
+        <button class="nav_icon" id="menuOpen" @click="menuOpen = !menuOpen">
+          <img v-if="!menuOpen" src="./public/assets/gear.svg" alt="" />
+          <img v-else src="./public/assets/gear_active.svg" alt="" />
+        </button>
+
+      <!-- Menu Items -->
+        <ul class="menu_item_container" v-if="menuOpen">
+          <li @click="toggleSyncStorage()">
+            <img v-if="settings.enableSyncStorage" src="./public/assets/sync.svg"/>
+            <img v-else src="./public/assets/sync_active.svg" />
+          </li>
+        </ul>
+        
+      </nav>
     </main>
 
     <script src="./bower_components/pen/src/pen.js"></script>
