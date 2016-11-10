@@ -1,5 +1,7 @@
 > Husk: Write text in your chrome `New Tab` page.
 
+![husk screenshot]('docs/screenshots/menu.jpg')
+
 ## Background
 
 Husk is a chrome extension inspired by [Papier](https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia). Husk will allow users to write text in their new tab page, as well as (hopefully) syncing data, basic markdown support, and text folding.
