@@ -22,6 +22,7 @@
       </button>
 
     <!-- Menu Modal -->
+    <transition name="fade">
     <aside id="huskMenu" v-if="menuOpen">
       <button id="menuClose" @click="menuOpen = false">x</button>
       <h3>Menu</h3>
@@ -38,8 +39,6 @@
           @click="toggleSyncStorage()">
           <label for="toggle_sync"></label>
 
-          <!-- <span v-if="settings.enableSyncStorage">Enable Sync</span> -->
-          <!-- <span v-else>Disable Sync</span> -->
       </div>
       <p>
         Sync your notes between computers. Requires a <a href="https://www.google.com/settings/chrome/sync">Chrome Profile</a> with extension sync access.
@@ -55,6 +54,7 @@
       </p>
 
     </aside>
+    </transition>
   </main>
 
   <script src="./bower_components/pen/src/pen.js"></script>
