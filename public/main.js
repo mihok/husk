@@ -45,7 +45,7 @@ var App = new Vue ({
     settings: {
       enableSyncStorage: false,
     },
-    menuOpen: false,
+    menuOpen: true,
   },
 
   methods: {

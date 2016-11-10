@@ -1,40 +1,59 @@
-
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8"/>
-    <title>New Tab</title>
-    <link rel="stylesheet" href="./public/styles.css">
-    <link rel="stylesheet" href="./bower_components/pen/src/pen.css">
-  </head>
-  <body>
-    <main id="App">
 
-      <!-- Husk Editor -->
-      <article contentEditable id="Editor"></article>
-      <section id="dummySpace"></section>
+<head>
+  <meta charset="UTF-8" />
+  <title>New Tab</title>
+  <link rel="stylesheet" href="./public/styles.css">
+  <link rel="stylesheet" href="./bower_components/pen/src/pen.css">
+</head>
 
-      <!-- Menu Nav -->
-      <nav id="huskMenu">
-        <button class="nav_icon" id="menuOpen" @click="menuOpen = !menuOpen">
-          <img v-if="!menuOpen" src="./public/assets/gear.svg" alt="" />
-          <img v-else src="./public/assets/gear_active.svg" alt="" />
+<body>
+  <main id="App">
+
+    <!-- Husk Editor -->
+    <article contentEditable id="Editor"></article>
+    <section id="dummySpace"></section>
+
+    <!-- Menu Toggle -->
+    <button class="nav_icon" id="menuToggle" @click="menuOpen = !menuOpen">
+        <img v-if="!menuOpen" src="./public/assets/gear.svg" alt="" />
+        <img v-else src="./public/assets/gear_active.svg" alt="" />
+      </button>
+
+    <!-- Menu Modal -->
+    <aside id="huskMenu" v-if="menuOpen">
+      <button id="menuClose" @click="menuOpen = false">x</button>
+      <h3>Menu</h3>
+
+      <!-- Sync settings -->
+      <div class="setting_group">
+        <h4 class="setting_header">Note Sync</h4>
+        <button class="setting_switch" :class="{on: settings.enableSyncStorage }" @click="toggleSyncStorage()">
+          <span v-if="settings.enableSyncStorage">Enable Sync</span>
+          <span v-else>Disable Sync</span>
         </button>
+      </div>
+      <p>
+        Sync your notes between computers. Requires a <a href="https://www.google.com/settings/chrome/sync">Chrome Profile</a> with extension sync access.
+        This is an experimental feature, and likely to have some bugs. <a href="https://github.com/teesloane/husk/wiki/Enabling-Chrome-Sync" target="_blank">Learn more</a>.
+      </p>
 
-      <!-- Menu Items -->
-        <ul class="menu_item_container" v-if="menuOpen">
-          <li @click="toggleSyncStorage()">
-            <img v-if="settings.enableSyncStorage" src="./public/assets/sync.svg"/>
-            <img v-else src="./public/assets/sync_active.svg" />
-          </li>
-        </ul>
-        
-      </nav>
-    </main>
+      <!-- About -->
+      <div class="setting_group">
+        <h4 class="setting_header">About</h4>
+      </div>
+      <p>
+        Husk was inspired by <a href="https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia">Papier</a>. Husk was written by <a href="https://github.com/teesloane">Teesloane</a>.
+      </p>
 
-    <script src="./bower_components/pen/src/pen.js"></script>
-    <script src="./bower_components/pen/src/markdown.js"></script>
-    <script src="./node_modules/vue/dist/vue.js" charset="utf-8"></script>
-    <script src="./public/main.js" charset="utf-8"></script>
-  </body>
+    </aside>
+  </main>
+
+  <script src="./bower_components/pen/src/pen.js"></script>
+  <script src="./bower_components/pen/src/markdown.js"></script>
+  <script src="./node_modules/vue/dist/vue.js" charset="utf-8"></script>
+  <script src="./public/main.js" charset="utf-8"></script>
+</body>
+
 </html>
