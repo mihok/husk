@@ -5,12 +5,53 @@
   * Utils / Misc / Unsorted
   */
 
+
+/**
+ * Brand colors. (F&R to change.)
+ * Main font color: #252525
+ */
+
+
 /* ========================================
 General Setup / Layout
 ===========================================*/
 
 html {
   font-size: 62.5%;
+  color: rgb(54, 54, 54);
+}
+
+p {
+  font-size: 1.3rem;
+}
+
+h1 {
+  font-size: 3rem;
+  margin: 1rem 0;
+}
+
+h2 {
+  font-size: 2.5rem;
+  margin: 1rem 0;
+}
+
+h3 {
+  font-size: 2rem;
+  margin: 1rem 0;
+}
+
+h4 {
+  font-size: 1.5rem;
+  margin: 1rem 0;
+}
+
+h5 {
+  font-size: 1rem;
+  margin: 1rem 0;
+}
+
+a:visited {
+  color: #252525;
 }
 
 body {
@@ -19,12 +60,12 @@ body {
 }
 
 #App {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  font-family: courier, sans-serif; /* Just for now, I swear.*/
-  align-items: center;
-  justify-content: center;
   flex-grow: 1;
+  font-family: courier, sans-serif;
+  justify-content: center;
 }
 
 
@@ -47,40 +88,133 @@ editor
   line-height: 1.4;
 }
 
+
 /* ========================================
 Menu
 ===========================================*/
-#huskMenu {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2rem;
-  padding: 1rem;
-  display: flex;
-  align-items:center;
-}
 
-
-#menuOpen {
-  list-style-type: none;
-}
-
-.menu_item_container {
-  list-style-type: none;
-  padding: 0 2rem;
-  margin: 0;
-}
-
-.menu_item_container li {
-  margin-left: 1rem;
-
-}
-
-.nav_icon {
+#menuToggle {
   background: none;
   border: none;
-  outline: none;
+  bottom: 0;
   cursor: pointer;
+  display: flex;
+  left: 0;
+  outline: none;
+  padding: 1rem;
+  position: absolute;
+}
+
+#menuClose {
+  background: none;
+  border: 1px solid #efefef;
+  margin: 1rem;
+  outline: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+#huskMenu {
+  border: 1px solid #efefef;
+  box-shadow: 1px 2px 1px rgba(0, 0, 0, .12);
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  padding: 2rem;
+  position: absolute;
+  top: 25%;
+  transform: translate(-50%, 15%);
+  width: 500px;
+}
+
+.setting_group {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting_header {
+  margin-bottom: 0;
+}
+
+.setting_switch {
+  background: #efefef;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  transition: all 0.5s ease;
+  width: 100px;
+}
+
+.on {
+  background: rgb(126, 195, 98);
+  color: white;
+}
+
+.toggle {
+  position: absolute;
+  margin-left: -9999px;
+  visibility: hidden;
+}
+
+.toggle+label {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+
+/* Styles of the gray oval bg*/
+
+input.toggle+label {
+  padding: 2px;
+  width: 30px;
+  height: 15px;
+  background-color: #dddddd;
+  border-radius: 15px;
+}
+
+
+/* Position of the overlay toggle */
+
+input.toggle+label:before, input.toggle+label:after {
+  display: block;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  bottom: 1px;
+  content: "";
+}
+
+input.toggle+label:before {
+  right: 1px;
+  background-color: #f1f1f1;
+  border-radius: 15px;
+  transition: background 0.4s;
+}
+
+
+/* The Ciclular toggle that moves.*/
+
+input.toggle+label:after {
+  width: 17px;
+  height: 17px;
+  background-color: #fff;
+  border-radius: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: margin 0.4s;
+}
+
+input.toggle:checked+label:before {
+  background-color: #8dbed5;
+}
+
+input.toggle:checked+label:after {
+  margin-left: 15px;
 }
 
 
