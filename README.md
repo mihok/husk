@@ -1,6 +1,6 @@
 > Husk: Write text in your chrome `New Tab` page.
 
-![husk screenshot]('docs/screenshots/menu.jpg')
+![husk screenshot](docs/screenshots/menu.png)
 
 ## Background
 
