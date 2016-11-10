@@ -29,10 +29,17 @@
       <!-- Sync settings -->
       <div class="setting_group">
         <h4 class="setting_header">Note Sync</h4>
-        <button class="setting_switch" :class="{on: settings.enableSyncStorage }" @click="toggleSyncStorage()">
-          <span v-if="settings.enableSyncStorage">Enable Sync</span>
-          <span v-else>Disable Sync</span>
-        </button>
+        <input
+          v-model="settings.enableSyncStorage"
+          id="toggle_sync"
+          type="checkbox"
+          class="toggle"
+          :class="{on: settings.enableSyncStorage }"
+          @click="toggleSyncStorage()">
+          <label for="toggle_sync"></label>
+
+          <!-- <span v-if="settings.enableSyncStorage">Enable Sync</span> -->
+          <!-- <span v-else>Disable Sync</span> -->
       </div>
       <p>
         Sync your notes between computers. Requires a <a href="https://www.google.com/settings/chrome/sync">Chrome Profile</a> with extension sync access.
