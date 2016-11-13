@@ -24,7 +24,7 @@ html {
 }
 
 p {
-  font-size: 1.3rem;
+  font-size: 1.6rem;
 }
 
 h1 {
@@ -129,7 +129,8 @@ Menu
   position: absolute;
   top: 25%;
   transform: translate(-50%, 15%);
-  width: 500px;
+  min-width: 240px;
+  width: 50%;
 }
 
 .setting_group {
