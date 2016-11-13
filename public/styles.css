@@ -128,9 +128,13 @@ Menu
   padding: 2rem;
   position: absolute;
   top: 25%;
-  transform: translate(-50%, 15%);
+  transform: translate(-50%, -5%);
   min-width: 240px;
   width: 50%;
+}
+
+#huskMenu p {
+  font-size: 1.4rem;
 }
 
 .setting_group {
