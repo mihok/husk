@@ -16,7 +16,7 @@ var editor = document.getElementById('Editor');
 // Constants
 const db = {
   schema: {
-    editor: '',
+    editor: "<h1>Welcome to Husk!</h1><div><br></div><p>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.</p><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>",
     settings: {
       enableSyncStorage: false,
     },
@@ -54,13 +54,12 @@ var App = new Vue ({
         db.CS.set( obj || {
           editor: chunkEditor(editor.innerHTML),
           settings: this.settings,
-        }, () => console.log('chrome storage sync saved'))
+        })
       } else {
         db.LS.set( obj || {
           editor: editor.innerHTML,
           settings: this.settings,
         });
-        console.log('local storage saved')
       }
     },
 
@@ -70,7 +69,6 @@ var App = new Vue ({
         const state = db.LS.get();
         editor.innerHTML = state.editor;
         this.settings = state.settings;
-        console.log('Local storage loaded');
 
       // Load from Chrome storage
       } else {
@@ -83,7 +81,6 @@ var App = new Vue ({
           });
           editor.innerHTML = content; // async, setting HTML must happen here.
           this.settings = state.editor;
-          console.log('chrome sync storage loaded.')
         })
       }
     },
@@ -94,7 +91,10 @@ var App = new Vue ({
      */
     initStorage() {
       // if localStorage doesn't exist, instantiate it with its schema.
-      if (!db.LS.get()) db.LS.init();
+      if (!db.LS.get()) {
+        db.LS.init();
+        editor.innerHTML = "<h1>Welcome to Husk!</h1><div><br></div><div>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.<br></div><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>"
+      }
 
       // If sync storage exists, set up Husk with it's values
       db.CS.get(null, (res) => {
@@ -177,7 +177,7 @@ function initEventListeners() {
     return null
   };
 
-  /* Prevent overwrites when user has > 1 Husk tab open.
+  /*
    * BUG: Paste something big / a few things -> refresh: it duplicates itself.
    */
   document.addEventListener('visibilitychange', () => {

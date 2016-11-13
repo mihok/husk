@@ -8,7 +8,7 @@
     "newtab": "index.html"
   },
   "icons": {
-    "128": "docs/icon.png",
+    "128": "docs/icon.png"
   },
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "devtools_page": "devtools.html",

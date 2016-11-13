@@ -105,7 +105,7 @@ Menu
   left: 0;
   outline: none;
   padding: 1rem;
-  position: absolute;
+  position: fixed;
 }
 
 #menuClose {
