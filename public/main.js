@@ -1,120 +1,84 @@
 /** Husk's Javascript Goop.
 /* Contents
-  * Globals
   * Vue Instance
   * Functions
-  * Outro Jams (event listeners + moar globals)
+  * Outro Jams (globals)
  */
 
-/*=======================================*
-Globals
-*========================================*/
-
-/* "editor" must be global: contentEditable elements can't be bound to vue data.*/
-var editor = document.getElementById('Editor');
-
-// Constants
-const db = {
-  schema: {
-    editor: "<h1>Welcome to Husk!</h1><div><br></div><p>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.</p><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>",
-    settings: {
-      enableSyncStorage: false,
-    },
-  },
-
-  CS: chrome.storage.sync,
-
-  LS: {
-    key: 'husk_user_storage',
-    init() { this.set(db.schema); },
-    set: (obj) => window.localStorage.setItem(db.LS.key, JSON.stringify(obj)),
-    get: () => JSON.parse(window.localStorage.getItem(db.LS.key))
-  }
-};
-
-/*=======================================*
+/*-----------------------------------------
 Vue Instance
-*========================================*/
-
+------------------------------------------*/
 var App = new Vue ({
   el: '#App',
   data: {
+    settings: { enableSyncStorage: false },
     acceptableTimeout: 2000,
     typingTimer: null,
     lastKeyPressTime: null,
-    settings: {
-      enableSyncStorage: false,
-    },
     menuOpen: false,
   },
 
   methods: {
     save(obj) {
       if (this.settings.enableSyncStorage) {
-        db.CS.set( obj || {
-          editor: chunkEditor(editor.innerHTML),
-          settings: this.settings,
+        chrome.storage.sync.set(obj || {
+          editor: chunkEditor(editorContents.innerHTML),
+          settings: this.settings
         })
+
       } else {
-        db.LS.set( obj || {
-          editor: editor.innerHTML,
+        localStorage.setItem('huskState', obj || JSON.stringify({
+          editor: editorContents.innerHTML,
           settings: this.settings,
-        });
+        }))
       }
     },
 
     load() {
-      // load from LS
       if (!this.settings.enableSyncStorage) {
-        const state = db.LS.get();
-        editor.innerHTML = state.editor;
+        const state = JSON.parse(window.localStorage.getItem('huskState'))
         this.settings = state.settings;
+        editorContents.innerHTML = state.editor
 
-      // Load from Chrome storage
       } else {
-        db.CS.get('editor', function (state) {
-          if (state.editor == null) return; //loading is async, check that db stuff exists first.
-
-          let content = ""; // reassemble editor contents
-          Object.keys(state.editor).forEach((key) => {
-            content += state.editor[key]
-          });
-          editor.innerHTML = content; // async, setting HTML must happen here.
-          this.settings = state.editor;
+        chrome.storage.sync.get(null, function (state) { // async!
+          if (state.editor == null) return;
+          let content = ""; // reassemble editor contents from split up object.
+          Object.keys(state.editor).forEach((key) => { content += state.editor[key] });
+          editorContents.innerHTML = content
         })
       }
     },
 
     /**
      * Prepares storage locations and loads settings.
-     * Prioritizes checking sync first, otherwise localStorage will overwrite settings.
+     * Queries chrome storage -- if exists -> sets local stage to indicate syncing is true.
      */
     initStorage() {
-      // if localStorage doesn't exist, instantiate it with its schema.
-      if (!db.LS.get()) {
-        db.LS.init();
-        editor.innerHTML = "<h1>Welcome to Husk!</h1><div><br></div><div>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.<br></div><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>"
+      if (!localStorage.getItem('huskState')) {
+        this.settings = { enableStorage: false }
+        editorContents.innerHTML = "<h1>Welcome to Husk!</h1><div><br></div><div>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.<br></div><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>"
+        this.save()
       }
 
-      // If sync storage exists, set up Husk with it's values
-      db.CS.get(null, (res) => {
+      chrome.storage.sync.get(null, (res) => {
         this.settings.enableSyncStorage = (res.hasOwnProperty('settings') && res.settings.enableSyncStorage);
-        this.load()
+        this.load() // must happen inside function -> async;
       })
     },
 
     /**
-     * Switch storage modes between local and sync.
-     * Gets the current values of the text editor, and the user's settings
-     * -> saves them -> switches storages -> re-saves currentState to new storage.
-     */
+     * Copies storage contents between storage boxes (Ls, vs chrome storage)
+     * NOTE: consider removing: could be problems b/w multiple computers turning off/on sync.
+     ie, both would exists seperately. */
     toggleSyncStorage() {
-      const tempState = { editor: editor, settings: this.settings };
-
-      this.save(); // save to old editor before switching storage location.
+      const tempState = { editor: editorContents, settings: this.settings };
       this.settings.enableSyncStorage = !this.settings.enableSyncStorage;
+      this.save();
+
+      // if turning OFF sync storage, wipe chrome storage, so app loads from local storage next time.
       if (!this.settings.enableSyncStorage) {
-        db.CS.clear(); // wipe chrome store so app loads from LS next init.
+        chrome.storage.sync.clear();
         this.save({
           editor: tempState.editor.innerHTML,
           settings: tempState.settings,
@@ -131,10 +95,9 @@ var App = new Vue ({
   }
 });
 
-
-/*=======================================*
+/*------------------------------------------
 Functions
-*========================================*/
+--------------------------------------------*/
 
 /**
  * Split large strings of innerHTML into an organized object.
@@ -177,42 +140,32 @@ function initEventListeners() {
     return null
   };
 
-  /*
-   * BUG: Paste something big / a few things -> refresh: it duplicates itself.
-   */
+  // cut any styles of clipboard items on paste; otherwise contentEditable receives formatting.
+  window.addEventListener('paste', (e) => {
+    e.preventDefault();
+    let text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertHTML', false, text)
+  });
+
+  /* BUG: Paste something big / a few things -> refresh: it duplicates itself. */
   document.addEventListener('visibilitychange', () => {
     document.hidden ? App.save() : App.initStorage();
   });
 }
 
-/* =========================================
-Setting up "Pen" library.
-// NOTE: Must happen after vue instantiation.
-============================================*/
+/* ------------------------------------------
+Set up `Pen.js.`
+---------------------------------------------*/
 let HuskEditorOptions = {
   editor: document.getElementById('Editor'),
   class: 'pen',
   linksInNewWindow: true,
-  list: [
-    'blockquote', 'h2', 'h3', 'p', 'insertorderedlist', 'insertunorderedlist',
-    'indent', 'outdent', 'bold', 'italic', 'underline', 'createlink'
-  ]
+  list: ['bold', 'italic', 'underline', 'createlink', 'insertorderedlist', 'insertunorderedlist', 'indent', 'outdent'],
 }
 
 const HuskEditor = new Pen(HuskEditorOptions)
 
-
-/*=======================================*
-Outro Jams / Event listeners.
-*========================================*/
-
-// MUST be after VUE instantiation in order to connect it to have stuff dumped into it.
-// Not ideal, but necessary because v-model does not work with contentEditable html.
-editor = document.getElementById('Editor');
-
-// strip clipboard before pasting anything. (Must be at end of file; won't work in Vue.created() )
-editor.addEventListener('paste', (e) => {
-  e.preventDefault();
-  let text = e.clipboardData.getData('text/plain');
-  document.execCommand('insertHTML', false, text)
-});
+/*------------------------------------------
+Outro Jams
+--------------------------------------------*/
+let editorContents = document.getElementById('Editor') // must be at end of file.
