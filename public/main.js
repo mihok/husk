@@ -2,15 +2,12 @@
 /* Contents
   * Vue Instance
   * Functions
-  * Outro Jams (event listeners + moar globals)
+  * Outro Jams (globals)
  */
 
-// let editorContents = document.getElementById('Editor')
-
-/*=======================================*
+/*-----------------------------------------
 Vue Instance
-*========================================*/
-
+------------------------------------------*/
 var App = new Vue ({
   el: '#App',
   data: {
@@ -22,10 +19,6 @@ var App = new Vue ({
   },
 
   methods: {
-    /**
-     * If sync is enabled, use chunkEditor to save to Chrome storage.
-     * Otherwise, store to local storage.
-     */
     save(obj) {
       if (this.settings.enableSyncStorage) {
         chrome.storage.sync.set(obj || {
@@ -41,11 +34,6 @@ var App = new Vue ({
       }
     },
 
-    /**
-     * Sync disabled? Load from local storage.
-     * Chrome storage sync is asynchronous, so setting editorContents has to happen in callback.
-     * Chrome storage requires reassembling content from the spread out "editor" keys.
-     */
     load() {
       if (!this.settings.enableSyncStorage) {
         const state = JSON.parse(window.localStorage.getItem('huskState'))
@@ -53,9 +41,9 @@ var App = new Vue ({
         editorContents.innerHTML = state.editor
 
       } else {
-        chrome.storage.sync.get(null, function (state) {
+        chrome.storage.sync.get(null, function (state) { // async!
           if (state.editor == null) return;
-          let content = ""; // reassemble editor contents
+          let content = ""; // reassemble editor contents from split up object.
           Object.keys(state.editor).forEach((key) => { content += state.editor[key] });
           editorContents.innerHTML = content
         })
@@ -64,9 +52,7 @@ var App = new Vue ({
 
     /**
      * Prepares storage locations and loads settings.
-     * Prioritizes checking sync first, otherwise localStorage will overwrite settings.
-     * TODO: rethink this, esp, in regards to whether or not you need to run
-     * chrome.sync.storage.clear() in the toggleSyncStorage fn.
+     * Queries chrome storage -- if exists -> sets local stage to indicate syncing is true.
      */
     initStorage() {
       if (!localStorage.getItem('huskState')) {
@@ -75,28 +61,24 @@ var App = new Vue ({
         this.save()
       }
 
-      // If sync storage exists, set up Husk with it's values
       chrome.storage.sync.get(null, (res) => {
         this.settings.enableSyncStorage = (res.hasOwnProperty('settings') && res.settings.enableSyncStorage);
-        this.load()
+        this.load() // must happen inside function -> async;
       })
     },
 
     /**
-     * Switch storage modes between local / sync.
-     * Gets the current values of the text editor, and the user's settings
-     * -> saves them -> switches storage type -> dumps tempState to new storage.
-     */
+     * Copies storage contents between storage boxes (Ls, vs chrome storage)
+     * NOTE: consider removing: could be problems b/w multiple computers turning off/on sync.
+     ie, both would exists seperately. */
     toggleSyncStorage() {
       const tempState = { editor: editorContents, settings: this.settings };
-
-      this.save(); // save to old editor before switching storage location.
       this.settings.enableSyncStorage = !this.settings.enableSyncStorage;
+      this.save();
 
       // if turning OFF sync storage, wipe chrome storage, so app loads from local storage next time.
       if (!this.settings.enableSyncStorage) {
-        console.log('sync storage is off, clear it');
-        // chrome.storage.sync.clear();
+        chrome.storage.sync.clear();
         this.save({
           editor: tempState.editor.innerHTML,
           settings: tempState.settings,
@@ -113,10 +95,9 @@ var App = new Vue ({
   }
 });
 
-
-/*=======================================*
+/*------------------------------------------
 Functions
-*========================================*/
+--------------------------------------------*/
 
 /**
  * Split large strings of innerHTML into an organized object.
@@ -159,41 +140,32 @@ function initEventListeners() {
     return null
   };
 
-  /*
-   * BUG: Paste something big / a few things -> refresh: it duplicates itself.
-   */
+  // cut any styles of clipboard items on paste; otherwise contentEditable receives formatting.
+  window.addEventListener('paste', (e) => {
+    e.preventDefault();
+    let text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertHTML', false, text)
+  });
+
+  /* BUG: Paste something big / a few things -> refresh: it duplicates itself. */
   document.addEventListener('visibilitychange', () => {
     document.hidden ? App.save() : App.initStorage();
   });
 }
 
-/* =========================================
-Setting up "Pen" library.
-// NOTE: Must happen after vue instantiation.
-============================================*/
+/* ------------------------------------------
+Set up `Pen.js.`
+---------------------------------------------*/
 let HuskEditorOptions = {
   editor: document.getElementById('Editor'),
   class: 'pen',
   linksInNewWindow: true,
-  list: [
-    'blockquote', 'h2', 'h3', 'p', 'insertorderedlist', 'insertunorderedlist',
-    'indent', 'outdent', 'bold', 'italic', 'underline', 'createlink'
-  ]
+  list: ['bold', 'italic', 'underline', 'createlink', 'insertorderedlist', 'insertunorderedlist', 'indent', 'outdent'],
 }
 
 const HuskEditor = new Pen(HuskEditorOptions)
 
-
-/*=======================================*
-Outro Jams / Event listeners.
-*========================================*/
-
-// must be at end of file.
-let editorContents = document.getElementById('Editor')
-
-// strip clipboard before pasting anything. (Must be at end of file; won't work in Vue.created() )
-editorContents.addEventListener('paste', (e) => {
-  e.preventDefault();
-  let text = e.clipboardData.getData('text/plain');
-  document.execCommand('insertHTML', false, text)
-});
+/*------------------------------------------
+Outro Jams
+--------------------------------------------*/
+let editorContents = document.getElementById('Editor') // must be at end of file.
