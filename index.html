@@ -31,11 +31,11 @@
       <div class="setting_group">
         <h4 class="setting_header">Note Sync</h4>
         <input
-          v-model="state.settings.enableSyncStorage"
+          v-model="settings.enableSyncStorage"
           id="toggle_sync"
           type="checkbox"
           class="toggle"
-          :class="{on: state.settings.enableSyncStorage }"
+          :class="{on: settings.enableSyncStorage }"
           @click="toggleSyncStorage()">
           <label for="toggle_sync"></label>
 
