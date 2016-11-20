@@ -11,6 +11,7 @@ Vue Instance
 var App = new Vue ({
   el: '#App',
   data: {
+    editor: undefined,
     settings: { enableSyncStorage: false },
     acceptableTimeout: 2000,
     typingTimer: null,
@@ -22,13 +23,13 @@ var App = new Vue ({
     save(obj) {
       if (this.settings.enableSyncStorage) {
         chrome.storage.sync.set(obj || {
-          editor: chunkEditor(editorContents.innerHTML),
+          editor: chunkEditor(this.editor.innerHTML),
           settings: this.settings
         })
 
       } else {
         localStorage.setItem('huskState', obj || JSON.stringify({
-          editor: editorContents.innerHTML,
+          editor: this.editor.innerHTML,
           settings: this.settings,
         }))
       }
@@ -38,14 +39,14 @@ var App = new Vue ({
       if (!this.settings.enableSyncStorage) {
         const state = JSON.parse(window.localStorage.getItem('huskState'))
         this.settings = state.settings;
-        editorContents.innerHTML = state.editor
+        this.editor.innerHTML = state.editor
 
       } else {
-        chrome.storage.sync.get(null, function (state) { // async!
+        chrome.storage.sync.get(null, (state) => { // async!
           if (state.editor == null) return;
           let content = ""; // reassemble editor contents from split up object.
           Object.keys(state.editor).forEach((key) => { content += state.editor[key] });
-          editorContents.innerHTML = content
+          this.editor.innerHTML = content
         })
       }
     },
@@ -57,7 +58,7 @@ var App = new Vue ({
     initStorage() {
       if (!localStorage.getItem('huskState')) {
         this.settings = { enableStorage: false }
-        editorContents.innerHTML = "<h1>Welcome to Husk!</h1><div><br></div><div>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.<br></div><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>"
+        this.editor.innerHTML = "<h1>Welcome to Husk!</h1><div><br></div><div>Husk is a text pad in your chrome new tab page. It was inspired by <a href=\"https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia\">Papier</a>.<br></div><p>Husk has basic markdown support, as well as the ability to select text and <u><i>format it.</i></u></p><p>Since this is your first time opening Husk, this content will be stored to Local Storage. You can click anywhere, and erase everything to start writing.&nbsp;</p><p>In the bottom left corner you can view the settings for Husk, which as of now, only includes the option for syncing notes across your chrome browser (an experimental and potentially buggy feature.)</p><p><br></p><p></p>"
         this.save()
       }
 
@@ -72,7 +73,7 @@ var App = new Vue ({
      * NOTE: consider removing: could be problems b/w multiple computers turning off/on sync.
      ie, both would exists seperately. */
     toggleSyncStorage() {
-      const tempState = { editor: editorContents, settings: this.settings };
+      const tempState = { editor: this.editor, settings: this.settings };
       this.settings.enableSyncStorage = !this.settings.enableSyncStorage;
       this.save();
 
@@ -92,6 +93,10 @@ var App = new Vue ({
   created() {
     this.initStorage();
     initEventListeners();
+  },
+
+  mounted() {
+    this.editor = this.$refs.EditorRef
   }
 });
 
@@ -164,8 +169,3 @@ let HuskEditorOptions = {
 }
 
 const HuskEditor = new Pen(HuskEditorOptions)
-
-/*------------------------------------------
-Outro Jams
---------------------------------------------*/
-let editorContents = document.getElementById('Editor') // must be at end of file.
