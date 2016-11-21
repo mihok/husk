@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Husk</title>
+  <link rel="stylesheet" href="css/pen.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <main id="App">
+
+    <!-- Husk Editor -->
+    <article contentEditable ref="EditorRef" id="Editor"></article>
+    <section id="dummySpace"></section>
+
+    <!-- Menu Toggle -->
+    <button class="nav_icon" id="menuToggle" @click="menuOpen = !menuOpen">
+        <img v-if="!menuOpen" src="assets/gear.svg" alt="" />
+        <img v-else src="assets/gear_active.svg" alt="" />
+      </button>
+
+    <!-- Menu Modal -->
+    <transition name="fade">
+    <aside id="huskMenu" v-if="menuOpen">
+      <button id="menuClose" @click="menuOpen = false">x</button>
+      <h3>Menu</h3>
+
+      <!-- Sync settings -->
+      <div class="setting_group">
+        <h4 class="setting_header">Note Sync</h4>
+        <input
+          v-model="settings.enableSyncStorage"
+          id="toggle_sync"
+          type="checkbox"
+          class="toggle"
+          :class="{on: settings.enableSyncStorage }"
+          @click="toggleSyncStorage()">
+          <label for="toggle_sync"></label>
+
+      </div>
+      <p>
+        Sync your notes between computers. Requires a <a href="https://www.google.com/settings/chrome/sync">Chrome Profile</a> with extension sync access.
+        This is an experimental feature, and likely to have some bugs. <a href="https://github.com/teesloane/husk/wiki/Enabling-Chrome-Sync" target="_blank">Learn more</a>.
+      </p>
+
+      <!-- About -->
+      <div class="setting_group">
+        <h4 class="setting_header">About</h4>
+      </div>
+      <p>
+        Husk was inspired by <a href="https://chrome.google.com/webstore/detail/papier/hhjeaokafplhjoogdemakihhdhffacia">Papier</a>. Husk was written by <a href="https://github.com/teesloane">Teesloane</a>.
+      </p>
+
+    </aside>
+    </transition>
+  </main>
+
+  <script src="js/pen.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/vue.min.js" charset="utf-8"></script>
+  <script src="js/main.js" charset="utf-8"></script>
+</body>
+
+</html>
