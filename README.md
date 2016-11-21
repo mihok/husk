@@ -9,11 +9,18 @@ Husk is a chrome extension inspired by [Papier](https://chrome.google.com/websto
 ## Build Instructions
 
 ```
+/** First Build **/
 git clone https://github.com/teesloane/husk.git
 cd husk
 npm i
-bower install
+
 ```
+Go to `chrome settings > extensions` > `enable developer mode` > `load unpacked extension` > navigate to project folder > load `husk/dist`
+
+After setting this up, you can just run:
+
+`gulp`
+
 
 ## CONTRIBUTIONS
 
