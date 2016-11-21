@@ -7,11 +7,16 @@
     "type": "git"
   },
   "scripts": {
-    "postinstall": "bower install"
+    "postinstall": "bower install; gulp",
+    "start": "gulp"
   },
   "author": "teesloane <tylersloane@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "vue": "^2.0.3"
+  },
+  "devDependencies": {
+    "bower": "^1.8.0",
+    "gulp": "^3.9.1"
   }
 }

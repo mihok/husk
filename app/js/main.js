@@ -2,7 +2,7 @@
 /* Contents
   * Vue Instance
   * Functions
-  * Outro Jams (globals)
+  * Pen.js
  */
 
 /*-----------------------------------------
@@ -91,12 +91,12 @@ var App = new Vue ({
   },
 
   created() {
-    this.initStorage();
     initEventListeners();
   },
 
   mounted() {
     this.editor = this.$refs.EditorRef
+    this.initStorage();
   }
 });
 

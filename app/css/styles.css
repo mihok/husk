@@ -228,3 +228,10 @@ input.toggle:checked+label:before {
 input.toggle:checked+label:after {
   margin-left: 15px;
 }
+
+
+/* ========================================
+PEN JS ovewrrides
+===========================================*/
+
+.pen, .pen-menu, .pen-input, .pen textarea{font:400 1.16em/1.45 Courier;}

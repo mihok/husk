@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Husk</title>
-  <link rel="stylesheet" href="./public/styles.css">
-  <link rel="stylesheet" href="./bower_components/pen/src/pen.css">
+  <link rel="stylesheet" href="css/pen.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
@@ -17,8 +17,8 @@
 
     <!-- Menu Toggle -->
     <button class="nav_icon" id="menuToggle" @click="menuOpen = !menuOpen">
-        <img v-if="!menuOpen" src="./public/assets/gear.svg" alt="" />
-        <img v-else src="./public/assets/gear_active.svg" alt="" />
+        <img v-if="!menuOpen" src="assets/gear.svg" alt="" />
+        <img v-else src="assets/gear_active.svg" alt="" />
       </button>
 
     <!-- Menu Modal -->
@@ -57,10 +57,10 @@
     </transition>
   </main>
 
-  <script src="./bower_components/pen/src/pen.js"></script>
-  <script src="./bower_components/pen/src/markdown.js"></script>
-  <script src="./node_modules/vue/dist/vue.js" charset="utf-8"></script>
-  <script src="./public/main.js" charset="utf-8"></script>
+  <script src="js/pen.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/vue.min.js" charset="utf-8"></script>
+  <script src="js/main.js" charset="utf-8"></script>
 </body>
 
 </html>
