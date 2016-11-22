@@ -9,6 +9,7 @@ gulp.task('compileLibs', function() {
   ]).pipe(gulp.dest('dist/js/'))
 
   gulp.src('bower_components/pen/src/pen.css').pipe(gulp.dest('dist/css/'))
+  gulp.src('bower_components/pen/src/font/**/*').pipe(gulp.dest('dist/css/font/'))
   gulp.src('manifest.json').pipe(gulp.dest('dist/'))
 })
 
