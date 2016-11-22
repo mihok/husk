@@ -91,7 +91,30 @@ var App = new Vue ({
   },
 
   created() {
-    initEventListeners();
+    // event listeners:
+
+    // "Auto Save" on key timer
+    window.addEventListener('keyup', () => {
+      clearTimeout(App.typingTimer);
+      this.typingTimer = setTimeout(App.save, App.acceptableTimeout)
+    });
+
+    window.addEventListener('keydown', () => clearTimeout(App.typingTimer));
+
+    // save before refresh / window close.
+    window.onbeforeunload = () => this.save() 
+
+    // save on moving between tabs.
+    /* BUG: Paste something big / a few things -> refresh: it duplicates itself. */
+    document.addEventListener('visibilitychange', () => document.hidden ? App.save() : App.initStorage());
+
+    // remove styles of clipboard items on paste; otherwise contentEditable receives formatting.
+    window.addEventListener('paste', (e) => {
+      e.preventDefault();
+      let text = e.clipboardData.getData('text/plain');
+      document.execCommand('insertHTML', false, text)
+    });
+
   },
 
   mounted() {
@@ -126,37 +149,6 @@ function chunkEditor(text) {
   return output;
 }
 
-/**
- * Setup Event Listeners across the app
- */
-function initEventListeners() {
-  // Save on key press when time timer runs out.
-  window.addEventListener('keyup', () => {
-    clearTimeout(App.typingTimer);
-    App.typingTimer = setTimeout(App.save, App.acceptableTimeout)
-  });
-
-  window.addEventListener('keydown', () => {
-    clearTimeout(App.typingTimer)
-  });
-
-  window.onbeforeunload = () => {
-    App.save();
-    return null
-  };
-
-  // cut any styles of clipboard items on paste; otherwise contentEditable receives formatting.
-  window.addEventListener('paste', (e) => {
-    e.preventDefault();
-    let text = e.clipboardData.getData('text/plain');
-    document.execCommand('insertHTML', false, text)
-  });
-
-  /* BUG: Paste something big / a few things -> refresh: it duplicates itself. */
-  document.addEventListener('visibilitychange', () => {
-    document.hidden ? App.save() : App.initStorage();
-  });
-}
 
 /* ------------------------------------------
 Set up `Pen.js.`
