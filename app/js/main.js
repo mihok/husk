@@ -13,9 +13,7 @@ var App = new Vue ({
   data: {
     editor: undefined,
     settings: { enableSyncStorage: false },
-    acceptableTimeout: 2000,
     typingTimer: null,
-    lastKeyPressTime: null,
     menuOpen: false,
   },
 
@@ -95,18 +93,18 @@ var App = new Vue ({
 
     // "Auto Save" on key timer
     window.addEventListener('keyup', () => {
-      clearTimeout(App.typingTimer);
-      this.typingTimer = setTimeout(App.save, App.acceptableTimeout)
+      clearTimeout(this.typingTimer);
+      this.typingTimer = setTimeout(this.save, 2000)
     });
 
-    window.addEventListener('keydown', () => clearTimeout(App.typingTimer));
+    window.addEventListener('keydown', () => clearTimeout(this.typingTimer));
 
     // save before refresh / window close.
-    window.onbeforeunload = () => this.save() 
+    window.onbeforeunload = () => this.save()
 
     // save on moving between tabs.
     /* BUG: Paste something big / a few things -> refresh: it duplicates itself. */
-    document.addEventListener('visibilitychange', () => document.hidden ? App.save() : App.initStorage());
+    document.addEventListener('visibilitychange', () => document.hidden ? this.save() : this.initStorage());
 
     // remove styles of clipboard items on paste; otherwise contentEditable receives formatting.
     window.addEventListener('paste', (e) => {
