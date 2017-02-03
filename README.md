@@ -1,4 +1,5 @@
 > Husk: Write text in your chrome `New Tab` page.
+> Note: I've been informed this is in a state of borked-ness / This is no longer maintained. 
 
 ![husk screenshot](docs/screenshots/welcome_text.png)
 
